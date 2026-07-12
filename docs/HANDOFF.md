@@ -166,3 +166,11 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - No Discord, Qwen, Webull, broker, SIM, paper, or LIVE runtime was started. V4 remained read-only.
 - Remaining blocker: the actual primary model/configuration and prompt have not been chosen, so `primary_candidate_locked` remains `false` and official prospective confirmation must not start.
 - Next exact step: choose and commit one candidate configuration and prompt, run `scripts/lock_candidate.py`, verify the protocol, and commit the resulting candidate/protocol lock updates before collecting the first official confirmation message.
+
+## Main-branch integration checkpoint (2026-07-12)
+
+- PR #2 was merged into V5 `main` at commit `697f553569f96bc7a0ddb818d672483252bbca37`.
+- The protocol lock now pins that merged commit so ancestry verification remains valid after the squash merge.
+- Checks run from `main`: 21 focused tests passed, Python compilation passed, and the protocol verifier passed after the metadata correction.
+- No candidate was selected or frozen. The remaining blocker is the explicit primary model/configuration and prompt choice.
+- Next exact step: route candidate selection and freeze to GPT-5.6 Sol with High reasoning, then verify the locked protocol before official prospective collection.
