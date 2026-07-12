@@ -9,7 +9,7 @@
     "temperature": 0,
     "think": true
   },
-  "git_commit": "569bb3f1af87615e709abf6602359e6de4267ea4",
+  "git_commit": "fba5a48a016d0347835b5129b1c198b0ecb88a8c",
   "implementation_files": {
     "data/baseline/v4_parser_lock.json": "364429b918e2e1938f4f754c2a2768936d121a78dd0a0a4dffb0b08e8eef5b29",
     "schemas/candidate_lock.schema.json": "6f5aee66f61da2853fc653d1d19bc742982c8e9312504829d88e7903c1708f05",
@@ -32,12 +32,12 @@
     "scripts/verify_protocol.ps1": "6ab373a8628744128552f6701caa5311605fafed45b0272c665ccf944ff637f8",
     "src/v5_eval/__init__.py": "00c6d4a2e803903876201aa9469f8aae231278a548ae6eb25b9a826e24ba3482",
     "src/v5_eval/core.py": "03e56eb215a0622196babca43af0c28dbcfbe9ea8f639c3ccff2453a4ea69b04",
-    "src/v5_eval/freeze.py": "ea8f26497d71001ec51287ab5f205fe6efff7064d7b4aea07d388313e3f10293",
+    "src/v5_eval/freeze.py": "1f60354618d7899df487dc6c1d5a956c8c212a6a0437af7cdfaded3f39960a23",
     "src/v5_eval/scoring.py": "b0e2a0a733a77c3fd41d1974cdb6bb46a8fc3afb5e72fbd595187eac6300975a",
     "src/v5_eval/v4_baseline.py": "4d386611292aaaf0b2aca8d9b3323b9aff3a9685bc2a4ca8d6d0feceda67863c",
     "src/v5_eval/workflow.py": "9e9cd4b65e36cc55281243d856a72364718621e0ba566d1cfd808af77ef46696"
   },
-  "locked_at": "2026-07-12T17:19:14-04:00",
+  "locked_at": "2026-07-12T17:22:31-04:00",
   "model_config_hash": "402ac1ac6580d550bff489dc3431ce8a1aca106a9a1ea7f97f8626ec078c4b9c",
   "model_id": "qwen3:8b@500a1f067a9f",
   "output_schema_file": "schemas/model_output.schema.json",

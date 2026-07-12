@@ -182,5 +182,6 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Added `config/candidate-qwen3-8b.json` and `prompts/blind_trade_classifier.txt`; the prompt contains no curated message examples and never receives the V4 parser answer.
 - Fabricated offline smoke checks covered actionable, no-action, and missing-position behavior. Thinking mode was retained because no-thinking mode failed the missing-position safety check; the retained mode returned `REVIEW/insufficient_context` in about 4.1 seconds.
 - Created `data/holdout/candidate.lock.json`; `primary_candidate_locked` is now `true`. This is a frozen test candidate, not evidence that Qwen is better than V4.
+- Prompt hashing normalizes only platform newline encoding, so the same committed prompt verifies on Windows and LF-based systems without changing its text or meaning; the regenerated lock pins commit `fba5a48a016d0347835b5129b1c198b0ecb88a8c`.
 - No Discord, V4, Webull, broker, SIM, paper, or LIVE runtime was started or connected.
 - Next exact step on or after the July 13 boundary: import the V5-owned Casey raw snapshot and follow `docs/PROSPECTIVE_CAPTURE_RUNBOOK.md`; do not alter the candidate after viewing confirmation outcomes.

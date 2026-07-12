@@ -14,6 +14,11 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _sha256_text(path: Path) -> str:
+    """Hash text with platform line endings normalized to LF."""
+    return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+
+
 def _inside(root: Path, path: str | Path) -> Path:
     resolved = Path(path).resolve()
     if not resolved.is_relative_to(root):
@@ -51,7 +56,7 @@ def build_candidate_lock(config: Mapping[str, Any], prompt_path: str | Path, out
         "generation_settings": dict(config["generation_settings"]),
         "timeout_ms": config["timeout_ms"],
         "prompt_file": prompt.relative_to(root_path).as_posix(),
-        "prompt_hash": _sha256(prompt),
+        "prompt_hash": _sha256_text(prompt),
         "output_schema_file": schema.relative_to(root_path).as_posix(),
         "output_schema_hash": _sha256(schema),
         "model_config_hash": config_hash,
@@ -70,7 +75,8 @@ def verify_candidate_lock(lock: Mapping[str, Any], root: str | Path, records: It
             raise ValueError("candidate lock is incomplete")
     for key, hash_key in (("prompt_file", "prompt_hash"), ("output_schema_file", "output_schema_hash")):
         path = _inside(root_path, root_path / str(lock.get(key, "")))
-        if _sha256(path).casefold() != str(lock.get(hash_key, "")).casefold():
+        actual_hash = _sha256_text(path) if key == "prompt_file" else _sha256(path)
+        if actual_hash.casefold() != str(lock.get(hash_key, "")).casefold():
             raise ValueError(f"candidate lock mismatch: {key}")
     tracked = subprocess.run(["git", "ls-files", "src/v5_eval", "scripts", "schemas", "data/baseline/v4_parser_lock.json"], cwd=root_path, check=True, capture_output=True, text=True).stdout.splitlines()
     if set(lock["implementation_files"]) != {relative.replace("\\", "/") for relative in tracked}:
