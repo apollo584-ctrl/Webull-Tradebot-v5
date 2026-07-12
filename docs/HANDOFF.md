@@ -137,13 +137,6 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Exact next step on July 13: import a V5-owned raw snapshot, prepare cases, review or split clusters, create the blind queue, complete labels without viewing outcomes, lock labels, run the frozen V4 baseline, then begin model benchmarking.
 - Recommended configuration for this preparation: GPT-5.6 Luna, Medium. A final promotion or go/no-go statistical review should be routed to GPT-5.6 Sol, High.
 
-## GitHub Workflow Guide Checkpoint
-
-- Added `GITHUB_PROJECT_SETUP.md`, a reusable guide for connecting other local projects to GitHub, establishing `main`, and using feature branches with draft PRs.
-- Kept the guide generic; it does not copy V5 evaluation or trading-specific rules into other projects.
-- Checks run: guide content and working-tree status verified.
-- Next exact step: send the guide to another project chat with that project’s local folder and GitHub repository filled in.
-
 ## July13 Readiness Checkpoint
 
 - Added `docs/PROSPECTIVE_CAPTURE_RUNBOOK.md` with the raw-export contract, blind-labeling rules, July 13 commands, and stop conditions.
@@ -151,3 +144,14 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Checks run: documentation review completed; the existing 11-test, compile, and protocol-lock checks remain the latest code verification.
 - Remaining external dependency: obtain a raw Casey JSONL export beginning at or after the locked confirmation boundary. Do not pre-stage labels or model outputs.
 - Next exact step: on July 13, run the importer from the V5 folder and retain its capture manifest with the audit counts.
+
+## GitHub Setup Completion Checkpoint
+
+- Repository: `https://github.com/apollo584-ctrl/Webull-Tradebot-v5`
+- Default branch: `main`.
+- GitHub CLI authentication is configured for `apollo584-ctrl`.
+- No setup PR or unrelated feature branch remains on GitHub.
+- The local `agent/pre-july13-evaluation-workflow` branch and its files were preserved.
+- The generic GitHub guide is outside this repository at `C:\Users\gregd\Codex Projects\GITHUB_PROJECT_SETUP-gh.md`; it is not V5 project instruction.
+- Checks run: GitHub authentication, repository/default-branch verification, and cleanup verification for the unrelated PR and remote branch.
+- No V4 runtime, Discord, Qwen, Webull, broker, SIM, or LIVE process was started.
