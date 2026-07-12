@@ -174,3 +174,13 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Checks run from `main`: 21 focused tests passed, Python compilation passed, and the protocol verifier passed after the metadata correction.
 - No candidate was selected or frozen. The remaining blocker is the explicit primary model/configuration and prompt choice.
 - Next exact step: route candidate selection and freeze to GPT-5.6 Sol with High reasoning, then verify the locked protocol before official prospective collection.
+
+## Primary-candidate freeze checkpoint (2026-07-12)
+
+- Selected the strongest installed text-only baseline without claiming superiority: `qwen3:8b@500a1f067a9f`, Q4_K_M, exact blob `sha256:a3de86cd1c132c822487ededd47a324c50491393e6565cd14bafa40d0b8e686f`.
+- Frozen Ollama `0.31.2`, temperature `0`, seed `20260713`, context `8192`, maximum generation `512`, thinking enabled, schema-constrained output, and timeout `8000 ms`.
+- Added `config/candidate-qwen3-8b.json` and `prompts/blind_trade_classifier.txt`; the prompt contains no curated message examples and never receives the V4 parser answer.
+- Fabricated offline smoke checks covered actionable, no-action, and missing-position behavior. Thinking mode was retained because no-thinking mode failed the missing-position safety check; the retained mode returned `REVIEW/insufficient_context` in about 4.1 seconds.
+- Created `data/holdout/candidate.lock.json`; `primary_candidate_locked` is now `true`. This is a frozen test candidate, not evidence that Qwen is better than V4.
+- No Discord, V4, Webull, broker, SIM, paper, or LIVE runtime was started or connected.
+- Next exact step on or after the July 13 boundary: import the V5-owned Casey raw snapshot and follow `docs/PROSPECTIVE_CAPTURE_RUNBOOK.md`; do not alter the candidate after viewing confirmation outcomes.
