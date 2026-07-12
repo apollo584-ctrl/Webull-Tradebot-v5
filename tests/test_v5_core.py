@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from v5_eval.core import build_blind_request, canonicalize_records, sha256_text, validate_capture_manifest, validate_decision, validate_model_output
 from v5_eval.freeze import verify_candidate_lock
-from v5_eval.scoring import bind_locked_labels, exact_binomial_interval, label_ready, score_records
+from v5_eval.scoring import bind_locked_labels, bind_v4_baseline, exact_binomial_interval, label_ready, score_records
 from v5_eval.v4_baseline import normalize_parsed_signal, verify_label_lock
 from v5_eval.workflow import apply_cluster_reviews, apply_contamination_reviews, build_label_queue
 
@@ -96,6 +96,15 @@ class V5CoreTests(unittest.TestCase):
         label = self.ready_label({"action": "NONE", "symbol": None, "direction": None, "status": "no_action"})
         with self.assertRaises(ValueError):
             bind_locked_labels([], [case], [label])
+
+    def test_v4_baseline_binding_requires_frozen_identity_and_coverage(self):
+        records = [{"case_id": "c1", "source_message_id": "m1", "input_hash": "A" * 64}]
+        lock = {"baseline_id": "baseline", "git_commit": "B" * 40}
+        baseline = [{"case_id": "c1", "source_message_id": "m1", "input_hash": "A" * 64, "baseline_id": "baseline", "v4_git_commit": "B" * 40, "v4_baseline": {"action": "NONE", "symbol": None, "direction": None, "status": "no_action"}}]
+        self.assertEqual(bind_v4_baseline(records, baseline, lock)[0]["v4_baseline"]["action"], "NONE")
+        baseline[0]["v4_git_commit"] = "wrong"
+        with self.assertRaises(ValueError):
+            bind_v4_baseline(records, baseline, lock)
 
     def test_capture_manifest_audit_must_match_selected_count(self):
         manifest = {

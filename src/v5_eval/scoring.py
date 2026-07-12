@@ -108,10 +108,28 @@ def bind_locked_labels(
             raise ValueError(f"label source_message_id does not match case {record['case_id']}")
         if not label_ready(label):
             raise ValueError(f"label is not final and blind for case {record['case_id']}")
-        record.update({key: case.get(key) for key in ("cluster_id", "cluster_review_status", "contamination_status", "contamination_flags")})
+        record.update({key: case.get(key) for key in ("source_message_id", "message_timestamp", "input_hash", "cluster_id", "cluster_review_status", "contamination_status", "contamination_flags")})
         record["independent_label"] = label
         bound.append(record)
     return bound
+
+
+def bind_v4_baseline(records: Iterable[Mapping[str, Any]], baseline_records: Iterable[Mapping[str, Any]], baseline_lock: Mapping[str, Any]) -> list[dict[str, Any]]:
+    output = [dict(record) for record in records]
+    baseline = [dict(record) for record in baseline_records]
+    case_ids = [str(record.get("case_id", "")) for record in output]
+    baseline_ids = [str(record.get("case_id", "")) for record in baseline]
+    if len(baseline_ids) != len(set(baseline_ids)) or set(case_ids) != set(baseline_ids):
+        raise ValueError("V4 baseline must exactly cover the locked cases")
+    by_id = {str(record["case_id"]): record for record in baseline}
+    for record in output:
+        value = by_id[str(record["case_id"])]
+        if value.get("baseline_id") != baseline_lock.get("baseline_id") or value.get("v4_git_commit") != baseline_lock.get("git_commit"):
+            raise ValueError(f"V4 baseline identity mismatch for case {record['case_id']}")
+        if str(value.get("source_message_id")) != str(record.get("source_message_id")) or str(value.get("input_hash")) != str(record.get("input_hash")):
+            raise ValueError(f"V4 baseline input mismatch for case {record['case_id']}")
+        record["v4_baseline"] = validate_decision(value.get("v4_baseline"))
+    return output
 
 
 def _percentile(values: list[float], fraction: float) -> float | None:

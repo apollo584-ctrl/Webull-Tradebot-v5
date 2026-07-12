@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from v5_eval.core import load_jsonl
 from v5_eval.freeze import verify_candidate_lock
-from v5_eval.scoring import bind_locked_labels, score_records
+from v5_eval.scoring import bind_locked_labels, bind_v4_baseline, score_records
 from v5_eval.v4_baseline import load_lock, verify_label_lock
 
 
@@ -21,6 +21,7 @@ def main() -> None:
     parser.add_argument("output", type=Path)
     parser.add_argument("--label-lock", type=Path, required=True)
     parser.add_argument("--candidate-lock", type=Path, required=True)
+    parser.add_argument("--v4-baseline", type=Path, required=True)
     args = parser.parse_args()
     lock = load_lock(args.label_lock)
     verify_label_lock(lock, ROOT / lock["case_file"], ROOT)
@@ -38,6 +39,7 @@ def main() -> None:
     if not expected_candidate_hash or hashlib.sha256(candidate_path.read_bytes()).hexdigest().casefold() != str(expected_candidate_hash).casefold():
         raise ValueError("candidate lock is not included in the protocol lock")
     records = bind_locked_labels(load_jsonl(args.input), cases, labels)
+    records = bind_v4_baseline(records, load_jsonl(args.v4_baseline), load_lock(ROOT / "data" / "baseline" / "v4_parser_lock.json"))
     verify_candidate_lock(load_lock(candidate_path), ROOT, records)
     report = score_records(records, protocol)
     args.output.parent.mkdir(parents=True, exist_ok=True)

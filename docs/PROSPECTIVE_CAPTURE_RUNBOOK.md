@@ -45,7 +45,7 @@ Label the queue without opening V4 parser output, Qwen/model output, prior revie
 ```powershell
 python scripts/lock_labels.py data/holdout/cases.final.jsonl data/labels/labels.final.jsonl --output data/holdout/label.lock.json
 python scripts/run_v4_baseline.py data/holdout/cases.final.jsonl data/results/v4-confirmation.jsonl --label-lock data/holdout/label.lock.json
-python scripts/score_saved_responses.py data/results/candidate-responses.jsonl data/results/confirmation-report.json --label-lock data/holdout/label.lock.json --candidate-lock data/holdout/candidate.lock.json
+python scripts/score_saved_responses.py data/results/candidate-responses.jsonl data/results/confirmation-report.json --label-lock data/holdout/label.lock.json --candidate-lock data/holdout/candidate.lock.json --v4-baseline data/results/v4-confirmation.jsonl
 ```
 
 Stop if the importer reports no eligible Casey messages, the raw export contains unsupported fields, labels cannot be completed blind, or the protocol minimums cannot be met. Do not start Discord, Qwen, Webull, broker, SIM, or LIVE processes during capture and labeling.
