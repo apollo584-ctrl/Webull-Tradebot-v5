@@ -22,7 +22,7 @@
     "linguistically_novel_clusters": 50,
     "ambiguous_or_context_dependent": 50
   },
-  "primary_candidate_locked": false,
+  "primary_candidate_locked": true,
   "labels_locked": false,
   "outcomes_viewed": false,
   "primary_endpoint": "cluster_weighted_complete_decision_accuracy_on_uncontaminated_linguistically_novel_cases",
@@ -34,8 +34,8 @@
     "structured_output_minimum_rate": 0.99,
     "timeout_and_runtime_error_maximum_rate": 0.01,
     "non_actionable_safe_handling_minimum_rate": 0.95,
-    "actionable_recall_minimum_rate": 0.90,
-    "actionable_recall_ci_lower_bound_minimum": 0.80,
+    "actionable_recall_minimum_rate": 0.9,
+    "actionable_recall_ci_lower_bound_minimum": 0.8,
     "p95_latency_maximum_ms": 8000
   },
   "paired_interval": {
@@ -48,5 +48,6 @@
     "critical_errors": "all_canonical_prospective_messages_attempted",
     "safe_handling": "all_canonical_non_actionable_or_ambiguous_messages_attempted",
     "reliability_and_latency": "all_attempted_model_evaluations"
-  }
+  },
+  "candidate_lock_file": "data/holdout/candidate.lock.json"
 }
