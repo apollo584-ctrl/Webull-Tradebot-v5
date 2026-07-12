@@ -1,0 +1,16 @@
+{
+  "model_id": "qwen3:8b@500a1f067a9f",
+  "quantization": "Q4_K_M; blob sha256:a3de86cd1c132c822487ededd47a324c50491393e6565cd14bafa40d0b8e686f",
+  "runtime": "Ollama",
+  "runtime_version": "0.31.2",
+  "generation_settings": {
+    "runtime_model": "qwen3:8b",
+    "temperature": 0,
+    "seed": 20260713,
+    "num_ctx": 8192,
+    "num_predict": 512,
+    "think": true,
+    "format": "schemas/model_output.schema.json"
+  },
+  "timeout_ms": 8000
+}
