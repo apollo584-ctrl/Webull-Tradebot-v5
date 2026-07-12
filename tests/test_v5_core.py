@@ -7,8 +7,8 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from v5_eval.core import build_blind_request, canonicalize_records, sha256_text, validate_decision, validate_model_output
-from v5_eval.scoring import score_records
+from v5_eval.core import build_blind_request, canonicalize_records, sha256_text, validate_capture_manifest, validate_decision, validate_model_output
+from v5_eval.scoring import bind_locked_labels, label_ready, score_records
 from v5_eval.v4_baseline import normalize_parsed_signal, verify_label_lock
 from v5_eval.workflow import apply_cluster_reviews, build_label_queue
 
@@ -75,6 +75,35 @@ class V5CoreTests(unittest.TestCase):
         self.assertEqual(report["novel_cluster_weighted_accuracy"], 1)
         self.assertEqual(report["paired_cluster_bootstrap"]["lower"], 1)
 
+    def test_label_readiness_requires_a_valid_novelty_class(self):
+        label = self.ready_label({"action": "NONE", "symbol": None, "direction": None, "status": "no_action"})
+        label.pop("novelty_class")
+        self.assertFalse(label_ready(label))
+        label["novelty_class"] = "bogus"
+        self.assertFalse(label_ready(label))
+
+    def test_locked_label_binding_rejects_missing_response_cases(self):
+        case = {"case_id": "c1", "source_message_id": "m1", "cluster_id": "cluster-1", "cluster_review_status": "confirmed", "contamination_status": "clear", "contamination_flags": []}
+        label = self.ready_label({"action": "NONE", "symbol": None, "direction": None, "status": "no_action"})
+        with self.assertRaises(ValueError):
+            bind_locked_labels([], [case], [label])
+
+    def test_capture_manifest_audit_must_match_selected_count(self):
+        manifest = {
+            "capture_id": "capture-1",
+            "imported_at": "2026-07-13T10:00:00-04:00",
+            "snapshot_path": "data/raw/prospective/capture-1.jsonl",
+            "snapshot_sha256": "A" * 64,
+            "source_channel_url_sha256": "B585176665DD638BB6E8682C48F8469131AF9A5101D64619B8AD323117BE15BA",
+            "time_start": "2026-07-13T10:00:00-04:00",
+            "time_end": "2026-07-13T10:01:00-04:00",
+            "record_count": 2,
+            "parser_or_model_fields_absent": True,
+            "capture_audit": {"input_records": 2, "selected_records": 1, "stress_channel_excluded": 0, "wrong_or_missing_source_excluded": 0, "pre_boundary_excluded": 0, "malformed_or_empty_excluded": 0},
+        }
+        with self.assertRaises(ValueError):
+            validate_capture_manifest(manifest)
+
     def test_safe_deferral_is_not_critical_but_is_not_correct(self):
         record = {
             "cluster_id": "cluster-0001",
@@ -134,6 +163,7 @@ class V5CoreTests(unittest.TestCase):
         cases = root / "data" / "holdout" / "protocol.json"
         labels = root / "data" / "labels" / "README.md"
         lock = {
+            "protocol_id": "v5-prospective-1",
             "labels_locked": True,
             "outcomes_viewed": False,
             "case_file": "data/holdout/protocol.json",

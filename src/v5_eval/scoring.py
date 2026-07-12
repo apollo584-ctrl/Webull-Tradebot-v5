@@ -11,6 +11,8 @@ from typing import Any, Iterable, Mapping
 
 from .core import EXECUTABLE_ACTIONS, parse_timestamp, validate_decision, validate_model_output
 
+VALID_NOVELTY_CLASSES = ("linguistically_novel", "known_or_near_duplicate", "not_applicable")
+
 
 def _decision(value: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
     if not value:
@@ -60,17 +62,55 @@ def label_ready(label: Any) -> bool:
     if label.get("confidence") not in ("high", "medium", "low") or not str(label.get("rationale", "")).strip():
         return False
     context = label.get("required_context")
-    if not isinstance(context, Mapping) or context.get("position_state") not in ("flat", "long", "short", "unknown") or not isinstance(context.get("prior_message_ids"), list):
+    if not isinstance(context, Mapping) or not isinstance(context.get("context_required"), bool) or context.get("position_state") not in ("flat", "long", "short", "unknown") or not isinstance(context.get("prior_message_ids"), list) or any(not str(value).strip() for value in context["prior_message_ids"]):
+        return False
+    if context.get("notes") is not None and not isinstance(context.get("notes"), str):
         return False
     if label.get("adjudication_status") not in ("not_required", "resolved"):
         return False
-    if label.get("novelty_class") == "unresolved":
+    if label.get("novelty_class") not in VALID_NOVELTY_CLASSES:
         return False
     try:
         validate_decision(label["decision"])
     except (KeyError, ValueError):
         return False
     return True
+
+
+def bind_locked_labels(
+    records: Iterable[Mapping[str, Any]],
+    cases: Iterable[Mapping[str, Any]],
+    labels: Iterable[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Attach only the exact locked labels and case metadata to saved responses."""
+    response_records = [dict(record) for record in records]
+    case_records = [dict(case) for case in cases]
+    label_records = [dict(label) for label in labels]
+    case_ids = [str(case.get("case_id", "")) for case in case_records]
+    response_ids = [str(record.get("case_id", "")) for record in response_records]
+    label_ids = [str(label.get("case_id", "")) for label in label_records]
+    if any(not value for value in case_ids + response_ids + label_ids):
+        raise ValueError("case, response, and label records require case_id")
+    if len(case_ids) != len(set(case_ids)) or len(response_ids) != len(set(response_ids)) or len(label_ids) != len(set(label_ids)):
+        raise ValueError("duplicate case_id in cases, responses, or labels")
+    if set(case_ids) != set(response_ids) or set(case_ids) != set(label_ids):
+        raise ValueError("responses and labels must exactly cover the locked cases")
+    cases_by_id = {str(case["case_id"]): case for case in case_records}
+    labels_by_id = {str(label["case_id"]): label for label in label_records}
+    bound: list[dict[str, Any]] = []
+    for record in response_records:
+        case = cases_by_id[str(record["case_id"])]
+        label = labels_by_id[str(record["case_id"])]
+        if str(record.get("source_message_id", "")) != str(case.get("source_message_id", "")):
+            raise ValueError(f"response source_message_id does not match case {record['case_id']}")
+        if str(label.get("source_message_id", "")) != str(case.get("source_message_id", "")):
+            raise ValueError(f"label source_message_id does not match case {record['case_id']}")
+        if not label_ready(label):
+            raise ValueError(f"label is not final and blind for case {record['case_id']}")
+        record.update({key: case.get(key) for key in ("cluster_id", "cluster_review_status", "contamination_status", "contamination_flags")})
+        record["independent_label"] = label
+        bound.append(record)
+    return bound
 
 
 def _percentile(values: list[float], fraction: float) -> float | None:

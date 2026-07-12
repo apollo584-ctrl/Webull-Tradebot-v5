@@ -8,9 +8,9 @@ Last updated: 2026-07-11
 - V4 stable reference: `C:\Users\gregd\Codex Projects\Webull Tradebot v4 Qwen`
 - V4 tag: `v4-stable-2026-07-11`
 - V4 baseline commit: `a19db80`
-- V5 Git repository initialized locally on `main`; no commit created yet.
+- V5 Git repository baseline is on `main`; the working branch is used for reviewed changes.
 - V4 GitHub reference: `https://github.com/apollo584-ctrl/Webull-Trade-Bot-v4`.
-- V5 has no GitHub remote configured yet.
+- V5 GitHub remote: `https://github.com/apollo584-ctrl/Webull-Tradebot-v5`.
 
 V4 is the stable, read-only baseline. V5 must not edit or run V4.
 
@@ -145,13 +145,10 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Remaining external dependency: obtain a raw Casey JSONL export beginning at or after the locked confirmation boundary. Do not pre-stage labels or model outputs.
 - Next exact step: on July 13, run the importer from the V5 folder and retain its capture manifest with the audit counts.
 
-## GitHub Setup Completion Checkpoint
+## Groups 1–2 Fix Checkpoint
 
-- Repository: `https://github.com/apollo584-ctrl/Webull-Tradebot-v5`
-- Default branch: `main`.
-- GitHub CLI authentication is configured for `apollo584-ctrl`.
-- No setup PR or unrelated feature branch remains on GitHub.
-- The local `agent/pre-july13-evaluation-workflow` branch and its files were preserved.
-- The generic GitHub guide is outside this repository at `C:\Users\gregd\Codex Projects\GITHUB_PROJECT_SETUP-gh.md`; it is not V5 project instruction.
-- Checks run: GitHub authentication, repository/default-branch verification, and cleanup verification for the unrelated PR and remote branch.
-- No V4 runtime, Discord, Qwen, Webull, broker, SIM, or LIVE process was started.
+- Group 1 corrected the July 13 label-lock command and removed stale setup-only GitHub text from the V5 README and handoff.
+- Group 2 now requires strict novelty/context label fields, validates complete capture manifests, binds scoring to the exact locked cases and labels, and permits schema-valid null decisions for invalid model outputs.
+- Checks run: 13 focused tests passed, Python compilation passed, protocol lock verified, CLI help checks passed, and `git diff --check` passed.
+- Remaining blockers: contamination clearance, candidate/implementation freeze, clustering-method alignment, and complete statistical promotion gates remain Group 3–5 work.
+- Next exact step: Group 3, GPT-5.6 Sol with High reasoning, for contamination and candidate-freeze controls.

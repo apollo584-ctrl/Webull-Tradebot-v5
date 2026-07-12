@@ -31,7 +31,7 @@ Review clusters before labeling. Confirm true near-duplicates; split cases that 
 Label the queue without opening V4 parser output, Qwen/model output, prior reviews, correction notes, or outcome information. Use `docs/LABELING_GUIDE.md`. When labels are complete, save the final file under `data/labels/`, then run:
 
 ```powershell
-python scripts/lock_labels.py data/holdout/cases.reviewed.jsonl data/labels/labels.final.jsonl data/holdout/label.lock.json
+python scripts/lock_labels.py data/holdout/cases.reviewed.jsonl data/labels/labels.final.jsonl --output data/holdout/label.lock.json
 python scripts/run_v4_baseline.py data/holdout/cases.reviewed.jsonl data/results/v4-confirmation.jsonl --label-lock data/holdout/label.lock.json
 ```
 

@@ -17,6 +17,8 @@ def load_lock(path: str | Path) -> dict[str, Any]:
 
 
 def verify_label_lock(label_lock: Mapping[str, Any], cases_path: str | Path, project_root: str | Path) -> None:
+    if label_lock.get("protocol_id") != "v5-prospective-1":
+        raise ValueError("label lock uses an unexpected protocol")
     if label_lock.get("labels_locked") is not True:
         raise ValueError("independent labels are not locked")
     if label_lock.get("outcomes_viewed") is not False:
