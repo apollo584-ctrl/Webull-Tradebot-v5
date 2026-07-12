@@ -16,10 +16,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Freeze the one preselected V5 confirmatory model candidate.")
     parser.add_argument("config", type=Path, help="JSON model/runtime/generation configuration.")
     parser.add_argument("prompt", type=Path)
-    parser.add_argument("--output-schema", type=Path, default=ROOT / "schemas" / "model_output.schema.json")
     parser.add_argument("--output", type=Path, default=ROOT / "data" / "holdout" / "candidate.lock.json")
     args = parser.parse_args()
-    lock = build_candidate_lock(json.loads(args.config.read_text(encoding="utf-8")), args.prompt, args.output_schema, ROOT)
+    lock = build_candidate_lock(json.loads(args.config.read_text(encoding="utf-8")), args.prompt, ROOT / "schemas" / "model_output.schema.json", ROOT)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(lock, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     protocol_path = ROOT / "data" / "holdout" / "protocol.json"

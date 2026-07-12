@@ -33,6 +33,8 @@ def build_candidate_lock(config: Mapping[str, Any], prompt_path: str | Path, out
         raise ValueError("candidate lock requires a clean committed V5 workspace")
     prompt = _inside(root_path, prompt_path)
     schema = _inside(root_path, output_schema_path)
+    if schema.relative_to(root_path).as_posix() != "schemas/model_output.schema.json":
+        raise ValueError("candidate output schema must be schemas/model_output.schema.json")
     tracked = subprocess.run(["git", "ls-files", "src/v5_eval", "scripts", "schemas", "data/baseline/v4_parser_lock.json"], cwd=root_path, check=True, capture_output=True, text=True).stdout.splitlines()
     files = {relative.replace("\\", "/"): _sha256(root_path / relative) for relative in tracked}
     config_hash = hashlib.sha256(json.dumps(dict(config), sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
@@ -61,6 +63,8 @@ def verify_candidate_lock(lock: Mapping[str, Any], root: str | Path, records: It
     root_path = Path(root).resolve()
     if lock.get("protocol_id") != "v5-prospective-1" or lock.get("candidate_locked") is not True:
         raise ValueError("candidate is not locked for this protocol")
+    if lock.get("output_schema_file") != "schemas/model_output.schema.json":
+        raise ValueError("candidate lock does not use the blind model-output schema")
     for key in ("git_commit", "model_id", "quantization", "runtime", "runtime_version", "generation_settings", "timeout_ms", "prompt_hash", "output_schema_hash", "model_config_hash", "implementation_files"):
         if not lock.get(key):
             raise ValueError("candidate lock is incomplete")

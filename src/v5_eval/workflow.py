@@ -17,6 +17,19 @@ PROHIBITED_RAW_KEYS = {"decision", "parser", "interpretation", "shadow", "model"
 CONTAMINATION_FLAGS = {"historical_exact_match", "historical_near_duplicate", "prior_model_review", "manual_correction", "prompt_example", "parser_rule_tuning", "threshold_tuning"}
 
 
+def _contamination_ready(case: Mapping[str, Any], reference_hash: str) -> bool:
+    review = case.get("contamination_review")
+    if case.get("contamination_status") not in ("clear", "excluded") or not isinstance(review, Mapping):
+        return False
+    try:
+        reviewed_at = datetime.fromisoformat(str(review.get("reviewed_at", "")).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    flags = set(case.get("contamination_flags", []))
+    status_valid = not flags if case["contamination_status"] == "clear" else bool(flags) and flags <= CONTAMINATION_FLAGS
+    return bool(status_valid and reviewed_at.tzinfo is not None and str(review.get("reference_hash", "")).casefold() == reference_hash.casefold() and str(review.get("reviewer_id", "")).strip() and str(review.get("rationale", "")).strip())
+
+
 def select_prospective_records(records: Iterable[Mapping[str, Any]], confirmation_start: datetime, *, with_audit: bool = False):
     selected: list[dict[str, Any]] = []
     audit = {"input_records": 0, "selected_records": 0, "stress_channel_excluded": 0, "wrong_or_missing_source_excluded": 0, "pre_boundary_excluded": 0, "malformed_or_empty_excluded": 0}
@@ -60,7 +73,9 @@ def apply_cluster_reviews(cases: Iterable[Mapping[str, Any]], decisions: Mapping
     for case in output:
         groups.setdefault(str(case["cluster_id"]), []).append(case)
     for cluster_id, group in groups.items():
-        decision = decisions.get(cluster_id, "pending")
+        if cluster_id not in decisions:
+            continue
+        decision = decisions[cluster_id]
         if decision == "confirm":
             for case in group:
                 case["cluster_review_status"] = "confirmed"
@@ -105,12 +120,12 @@ def apply_contamination_reviews(cases: Iterable[Mapping[str, Any]], decisions: M
     return output
 
 
-def build_label_queue(cases: Iterable[Mapping[str, Any]], *, seed: int = 20260713) -> list[dict[str, Any]]:
+def build_label_queue(cases: Iterable[Mapping[str, Any]], reference_hash: str, *, seed: int = 20260713) -> list[dict[str, Any]]:
     queue: list[dict[str, Any]] = []
     for case in cases:
         if case.get("cluster_review_status") not in ("confirmed", "confirmed_split"):
             raise ValueError("all clusters must be reviewed before label queue creation")
-        if case.get("contamination_status") not in ("clear", "excluded"):
+        if not _contamination_ready(case, reference_hash):
             raise ValueError("all cases require final contamination review before labeling")
         queue.append({
             "case_id": case["case_id"],
@@ -161,6 +176,9 @@ def build_label_lock(*, cases_path: str | Path, labels_path: str | Path, root: s
         raise ValueError("unreviewed cluster remains in case file")
     if any(case.get("contamination_status") not in ("clear", "excluded") for case in case_records):
         raise ValueError("unresolved contamination remains in case file")
+    reference_hash = hashlib.sha256((root_path / "data" / "source_manifest.json").read_bytes()).hexdigest()
+    if any(not _contamination_ready(case, reference_hash) for case in case_records):
+        raise ValueError("contamination review provenance is missing or mismatched")
     if any(not label_ready(label) for label in labels_by_id.values()):
         raise ValueError("one or more labels are not final blind labels")
     try:

@@ -200,14 +200,16 @@ class V5CoreTests(unittest.TestCase):
             "cluster_id": "cluster-1",
             "cluster_review_status": "pending_review",
             "contamination_status": "clear",
+            "contamination_flags": [],
+            "contamination_review": {"reference_hash": "A" * 64, "reviewer_id": "reviewer", "reviewed_at": "2026-07-13T09:00:00-04:00", "rationale": "checked frozen source inventory"},
             "source_message_id": "m1",
             "message_timestamp": "2026-07-13T10:00:00-04:00",
             "raw_text": "open SPY long",
         }
         with self.assertRaises(ValueError):
-            build_label_queue([case])
+            build_label_queue([case], "A" * 64)
         reviewed = apply_cluster_reviews([case], {"cluster-1": "confirm"})
-        queue = build_label_queue(reviewed)
+        queue = build_label_queue(reviewed, "A" * 64)
         self.assertEqual(queue[0]["case_id"], "c1")
         self.assertNotIn("parser_decision", queue[0])
 
@@ -220,6 +222,10 @@ class V5CoreTests(unittest.TestCase):
         reviewed = apply_cluster_reviews(cases, {"cluster-1": {"c1": "a", "c2": "a", "c3": "b"}})
         self.assertEqual(reviewed[0]["cluster_id"], reviewed[1]["cluster_id"])
         self.assertNotEqual(reviewed[0]["cluster_id"], reviewed[2]["cluster_id"])
+
+    def test_cluster_rerun_preserves_existing_review(self):
+        cases = [{"case_id": "c1", "cluster_id": "cluster-1", "cluster_review_status": "confirmed"}]
+        self.assertEqual(apply_cluster_reviews(cases, {})[0]["cluster_review_status"], "confirmed")
 
     def test_contamination_review_requires_exact_final_decisions(self):
         cases = [{"case_id": "c1"}, {"case_id": "c2"}]
@@ -259,13 +265,16 @@ class V5CoreTests(unittest.TestCase):
     def test_candidate_lock_verifies_saved_response_identity(self):
         root = Path(__file__).resolve().parents[1]
         prompt = root / "README.md"
-        schema = root / "schemas" / "evaluation_record.schema.json"
+        schema = root / "schemas" / "model_output.schema.json"
         tracked = subprocess.run(["git", "ls-files", "src/v5_eval", "scripts", "schemas", "data/baseline/v4_parser_lock.json"], cwd=root, check=True, capture_output=True, text=True).stdout.splitlines()
         implementation_files = {relative.replace("\\", "/"): hashlib.sha256((root / relative).read_bytes()).hexdigest() for relative in tracked}
-        lock = {"protocol_id": "v5-prospective-1", "candidate_locked": True, "git_commit": "A" * 40, "model_id": "candidate", "quantization": "test", "runtime": "test", "runtime_version": "1", "generation_settings": {"temperature": 0}, "timeout_ms": 1000, "prompt_file": "README.md", "prompt_hash": hashlib.sha256(prompt.read_bytes()).hexdigest(), "output_schema_file": "schemas/evaluation_record.schema.json", "output_schema_hash": hashlib.sha256(schema.read_bytes()).hexdigest(), "model_config_hash": "B" * 64, "implementation_files": implementation_files}
+        lock = {"protocol_id": "v5-prospective-1", "candidate_locked": True, "git_commit": "A" * 40, "model_id": "candidate", "quantization": "test", "runtime": "test", "runtime_version": "1", "generation_settings": {"temperature": 0}, "timeout_ms": 1000, "prompt_file": "README.md", "prompt_hash": hashlib.sha256(prompt.read_bytes()).hexdigest(), "output_schema_file": "schemas/model_output.schema.json", "output_schema_hash": hashlib.sha256(schema.read_bytes()).hexdigest(), "model_config_hash": "B" * 64, "implementation_files": implementation_files}
         verify_candidate_lock(lock, root, [{"case_id": "c1", "model_id": "candidate", "prompt_hash": lock["prompt_hash"], "model_config_hash": lock["model_config_hash"]}])
         with self.assertRaises(ValueError):
             verify_candidate_lock(lock, root, [{"case_id": "c1", "model_id": "other", "prompt_hash": lock["prompt_hash"], "model_config_hash": lock["model_config_hash"]}])
+        lock["output_schema_file"] = "schemas/evaluation_record.schema.json"
+        with self.assertRaises(ValueError):
+            verify_candidate_lock(lock, root)
 
 
 if __name__ == "__main__":
