@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v5-label-lock",
+  "title": "V5 Independent Label Lock",
+  "type": "object",
+  "required": ["protocol_id", "labels_locked", "locked_at", "case_file", "case_file_sha256", "label_file", "label_file_sha256", "outcomes_viewed"],
+  "properties": {
+    "protocol_id": {"const": "v5-prospective-1"},
+    "labels_locked": {"const": true},
+    "locked_at": {"type": "string", "format": "date-time"},
+    "case_file": {"type": "string", "pattern": "^data/(?:holdout|raw/prospective)/"},
+    "case_file_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "label_file": {"type": "string", "pattern": "^data/labels/"},
+    "label_file_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "outcomes_viewed": {"const": false}
+  },
+  "additionalProperties": false
+}

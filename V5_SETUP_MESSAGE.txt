@@ -1,0 +1,32 @@
+This is the clean kickoff for Webull Tradebot V5 Qwen.
+
+Active project directory:
+C:\Users\gregd\Codex Projects\Webull Tradebot v5
+
+Treat this directory as the only active V5 workspace. Do not edit, run, restart, or use the V4 workspace while working here unless Greg explicitly asks:
+C:\Users\gregd\Codex Projects\Webull Tradebot v4 Qwen
+
+V4 is the stable read-only baseline:
+- Git tag: v4-stable-2026-07-11
+- Commit: a19db80
+- Final V4 regression: 785 passed
+
+Before taking any action:
+1. Read the global rules at C:\Users\gregd\.codex\AGENTS.md.
+2. Read this project's docs\HANDOFF.md.
+3. Confirm the active path is the V5 directory above.
+4. Give the required task assessment with recommended model and reasoning.
+5. Wait for Greg to say “go” before editing, testing, running, or changing state.
+
+V5 purpose:
+Build an independent blind-Qwen evaluation path so Qwen can be judged on natural-language trade interpretation without being shown the local parser's answer. Keep deterministic safety, sizing, broker, reconciliation, SIM/LIVE, and fail-closed gates outside Qwen.
+
+V5 boundaries:
+- Do not enable unattended SIM, paper autonomy, or LIVE Qwen control.
+- Do not replace V4 or alter its runtime.
+- Do not treat curated replay scores or corrected examples as independent proof.
+- Preserve message IDs, timestamps, position context, audit records, and local-rule fallback.
+- Keep V5 runtime data, ports, browser profiles, and model-control files separate from V4 before any runtime work.
+
+Exact first task:
+Perform a read-only V5 setup check, then plan the smallest blind-Qwen evaluation harness using the V4 handoff as context. Do not implement until the assessment and “go” gate are satisfied.

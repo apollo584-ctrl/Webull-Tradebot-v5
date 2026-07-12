@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v5-label-record",
+  "title": "V5 Blind Label Record",
+  "type": "object",
+  "required": ["label_version", "case_id", "source_message_id", "labeled_at", "labeler_id", "label_pass", "blind_declaration", "allowed_context_hash", "required_context", "decision", "novelty_class", "confidence", "adjudication_status", "rationale"],
+  "properties": {
+    "label_version": {"type": "integer", "minimum": 1},
+    "case_id": {"type": "string", "minLength": 1},
+    "source_message_id": {"type": "string", "minLength": 1},
+    "labeled_at": {"type": "string", "format": "date-time"},
+    "labeler_id": {"type": "string", "minLength": 1},
+    "label_pass": {"enum": ["primary", "secondary", "adjudication"]},
+    "blind_declaration": {"const": true},
+    "allowed_context_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "required_context": {
+      "type": "object",
+      "required": ["context_required", "position_state", "prior_message_ids"],
+      "properties": {
+        "context_required": {"type": "boolean"},
+        "position_state": {"enum": ["flat", "long", "short", "unknown"]},
+        "prior_message_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "notes": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": ["action", "symbol", "direction", "status"],
+      "properties": {
+        "action": {"enum": ["OPEN", "ADD", "TRIM", "SELL", "WATCH", "NONE", "REVIEW"]},
+        "symbol": {"enum": ["SPY", "QQQ", "IWM", null]},
+        "direction": {"enum": ["LONG", "SHORT", null]},
+        "status": {"enum": ["actionable", "no_action", "ambiguous", "insufficient_context"]}
+      },
+      "allOf": [
+        {"if": {"properties": {"action": {"enum": ["OPEN", "ADD", "TRIM", "SELL"]}}}, "then": {"properties": {"status": {"const": "actionable"}, "symbol": {"type": "string"}, "direction": {"type": "string"}}}},
+        {"if": {"properties": {"action": {"enum": ["WATCH", "NONE"]}}}, "then": {"properties": {"status": {"const": "no_action"}}}},
+        {"if": {"properties": {"action": {"const": "REVIEW"}}}, "then": {"properties": {"status": {"enum": ["ambiguous", "insufficient_context"]}}}}
+      ],
+      "additionalProperties": false
+    },
+    "novelty_class": {"enum": ["linguistically_novel", "known_or_near_duplicate", "not_applicable", "unresolved"]},
+    "confidence": {"enum": ["high", "medium", "low"]},
+    "adjudication_status": {"enum": ["not_required", "pending", "resolved"]},
+    "rationale": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,77 @@
+{
+  "manifest_version": 1,
+  "created_at": "2026-07-11",
+  "source_workspace": "C:\\Users\\gregd\\Codex Projects\\Webull Tradebot v4 Qwen",
+  "read_only": true,
+  "protocol_locked": true,
+  "protocol_locked_at": "2026-07-11T22:54:19-04:00",
+  "confirmation_start": "2026-07-13T00:00:00-04:00",
+  "holdout_data_locked": false,
+  "sources": [
+    {
+      "path": "Active Training/data/training_examples.jsonl",
+      "records": 343,
+      "unique_ids": 343,
+      "time_start": "2026-05-28T14:56:38-04:00",
+      "time_end": "2026-06-04T11:42:41-04:00",
+      "category": "development_tuning",
+      "sha256": "458B5E321824C7485C1C5FDE5BBEDF4B062B19A5A2EF2E093BA4E1C235597EA9"
+    },
+    {
+      "path": "Active Training/data/manual_label_groups.jsonl",
+      "records": 29,
+      "category": "curated_excluded",
+      "sha256": "8D72137E1D77A4153F09ACE224C6AED73692ACB38B8D6F479BCC02DD1330B6F5"
+    },
+    {
+      "path": "Active Training/data/candidate_regression_tests.csv",
+      "records": 343,
+      "time_start": "2026-05-28T14:56:38-04:00",
+      "time_end": "2026-06-04T11:42:41-04:00",
+      "category": "known_regression",
+      "sha256": "A735333A7F913A3C06EE1E4F9DF9ADBE32AD9F1CA215C73B164C120380CD8AC1"
+    },
+    {
+      "path": "BOT_PROJECT/data/discord_raw_messages.jsonl",
+      "records": 1879,
+      "unique_ids": 1235,
+      "time_start": "2026-06-17T12:25:28-04:00",
+      "time_end": "2026-07-10T11:21:15-04:00",
+      "category": "candidate_raw_pool",
+      "sha256": "40259A4B3106282F3D4A231B93C883E5791ACDB39A00DF381BE6A7753BBF1E72"
+    },
+    {
+      "path": "BOT_PROJECT/data/discord_message_interpretations.jsonl",
+      "records": 1783,
+      "unique_ids": 1598,
+      "time_start": "2026-06-17T12:25:28-04:00",
+      "time_end": "2026-07-10T11:21:15-04:00",
+      "category": "parser_context_not_blind_input",
+      "sha256": "7A06978AA334336CC9D2DA869E221586216E3598C36B1B79FEC953CD91D79B9E"
+    },
+    {
+      "path": "BOT_PROJECT/data/message_journal.jsonl",
+      "records": 8327,
+      "parse_errors": 6,
+      "unique_ids": 1600,
+      "time_start": "2026-06-17T09:31:54-04:00",
+      "time_end": "2026-07-10T11:21:45-04:00",
+      "category": "mixed_context_not_clean_source",
+      "sha256": "81DDB49881991471049D22C8393965F9701AFC10D64FA406056C0B7274FE0ED0"
+    },
+    {
+      "path": "BOT_PROJECT/data/trade_audit.jsonl",
+      "records": 1071,
+      "category": "v4_baseline_context",
+      "sha256": "028736440E4ACA2DE5F53F08549FCD6A8BB1A96941ADBAFBDD1C8302E601EAC1"
+    },
+    {
+      "path": "BOT_PROJECT/data/shadow_ai_reviews.jsonl",
+      "records": 977,
+      "time_start": "2026-06-17T12:25:29-04:00",
+      "time_end": "2026-07-10T11:21:45-04:00",
+      "category": "prior_model_evidence_excluded",
+      "sha256": "B159CD13017C77DEA95B46C523FE3CB5FB0728CA08ECB2B27A53C96128671239"
+    }
+  ]
+}

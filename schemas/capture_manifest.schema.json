@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v5-capture-manifest",
+  "title": "V5 Prospective Capture Manifest",
+  "type": "object",
+  "required": ["capture_id", "imported_at", "snapshot_path", "snapshot_sha256", "source_channel_url_sha256", "time_start", "time_end", "record_count", "parser_or_model_fields_absent", "capture_audit"],
+  "properties": {
+    "capture_id": {"type": "string", "minLength": 1},
+    "imported_at": {"type": "string", "format": "date-time"},
+    "snapshot_path": {"type": "string", "pattern": "^data/raw/prospective/"},
+    "snapshot_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "source_channel_url_sha256": {"const": "B585176665DD638BB6E8682C48F8469131AF9A5101D64619B8AD323117BE15BA"},
+    "time_start": {"type": "string", "format": "date-time"},
+    "time_end": {"type": "string", "format": "date-time"},
+    "record_count": {"type": "integer", "minimum": 1},
+    "parser_or_model_fields_absent": {"const": true},
+    "capture_audit": {
+      "type": "object",
+      "required": ["input_records", "selected_records", "stress_channel_excluded", "wrong_or_missing_source_excluded", "pre_boundary_excluded", "malformed_or_empty_excluded"],
+      "properties": {
+        "input_records": {"type": "integer", "minimum": 0},
+        "selected_records": {"type": "integer", "minimum": 0},
+        "stress_channel_excluded": {"type": "integer", "minimum": 0},
+        "wrong_or_missing_source_excluded": {"type": "integer", "minimum": 0},
+        "pre_boundary_excluded": {"type": "integer", "minimum": 0},
+        "malformed_or_empty_excluded": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

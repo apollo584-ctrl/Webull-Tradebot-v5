@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime data and local model artifacts
+data/raw/*
+!data/raw/README.md
+data/labels/*
+!data/labels/README.md
+data/holdout/*
+!data/holdout/README.md
+!data/holdout/protocol.json
+!data/holdout/protocol.lock.json
+!data/holdout/label.lock.json
+!data/holdout/captures/
+!data/holdout/captures/*.json
+data/results/*
+!data/results/README.md
+!data/source_manifest.json
+logs/
+runtime/
+checkpoints/
+models/
+*.sqlite3
+*.db
+
+# Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini

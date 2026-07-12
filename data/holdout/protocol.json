@@ -1,0 +1,52 @@
+{
+  "protocol_id": "v5-prospective-1",
+  "status": "locked_awaiting_data",
+  "protocol_locked_at": "2026-07-11T22:54:19-04:00",
+  "confirmation_start": "2026-07-13T00:00:00-04:00",
+  "confirmation_end": null,
+  "confirmation_end_rule": "first complete trading day after all sample minimums are met",
+  "source": "immutable V5-owned snapshots under data/raw/prospective",
+  "capture_origin": "raw export produced outside the V5 evaluator; V5 does not start or depend on V4 runtime",
+  "source_channel_url_sha256": "B585176665DD638BB6E8682C48F8469131AF9A5101D64619B8AD323117BE15BA",
+  "excluded_stress_channel_url_sha256": "A25E5AC4EB5DAA89FAE3B915289C60A5D33978F4B638DE89CC0B3E48D9E3E128",
+  "capture_manifest_required": true,
+  "historical_cutoff": "2026-07-10T23:59:59-04:00",
+  "minimum_sample": {
+    "scope": "canonical_final_labeled_contamination_clear",
+    "unique_messages": 400,
+    "independent_clusters": 300,
+    "distinct_trading_days": 10,
+    "actionable": 100,
+    "non_actionable": 200,
+    "linguistically_novel": 75,
+    "linguistically_novel_clusters": 50,
+    "ambiguous_or_context_dependent": 50
+  },
+  "primary_candidate_locked": false,
+  "labels_locked": false,
+  "outcomes_viewed": false,
+  "primary_endpoint": "cluster_weighted_complete_decision_accuracy_on_uncontaminated_linguistically_novel_cases",
+  "promotion_gates": {
+    "novel_accuracy_improvement_percentage_points": 10,
+    "novel_improvement_ci_lower_bound_above_zero": true,
+    "overall_noninferiority_margin_percentage_points": -3,
+    "critical_errors": 0,
+    "structured_output_minimum_rate": 0.99,
+    "timeout_and_runtime_error_maximum_rate": 0.01,
+    "non_actionable_safe_handling_minimum_rate": 0.95,
+    "actionable_recall_minimum_rate": 0.90,
+    "actionable_recall_ci_lower_bound_minimum": 0.80,
+    "p95_latency_maximum_ms": 8000
+  },
+  "paired_interval": {
+    "method": "cluster_bootstrap",
+    "resamples": 10000,
+    "seed": 20260713
+  },
+  "gate_denominators": {
+    "effectiveness": "eligible_uncontaminated_clusters_equal_weight",
+    "critical_errors": "all_canonical_prospective_messages_attempted",
+    "safe_handling": "all_canonical_non_actionable_or_ambiguous_messages_attempted",
+    "reliability_and_latency": "all_attempted_model_evaluations"
+  }
+}
