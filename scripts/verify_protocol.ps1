@@ -3,6 +3,14 @@ $root = Split-Path -Parent $PSScriptRoot
 $lock = Get-Content -Raw (Join-Path $root 'data\holdout\protocol.lock.json') | ConvertFrom-Json
 $failed = @()
 
+function Get-NormalizedTextHash([string]$Path) {
+    $text = [IO.File]::ReadAllText($Path).Replace("`r`n", "`n").Replace("`r", "`n")
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes($text)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-', '') }
+    finally { $sha.Dispose() }
+}
+
 if (-not $lock.git_commit) { throw 'Protocol lock has no implementation commit' }
 git -C $root cat-file -e "$($lock.git_commit)^{commit}"
 if ($LASTEXITCODE -ne 0) { throw 'Protocol implementation commit does not exist' }
@@ -15,7 +23,7 @@ $missingCritical = @($criticalFiles | Where-Object { $_ -notin $lockedNames })
 if ($missingCritical) { throw "Protocol lock omits critical files: $($missingCritical -join ', ')" }
 
 foreach ($entry in $lock.files.PSObject.Properties) {
-    $actual = (Get-FileHash -Algorithm SHA256 (Join-Path $root $entry.Name)).Hash
+    $actual = Get-NormalizedTextHash (Join-Path $root $entry.Name)
     if ($actual -ne $entry.Value) { $failed += $entry.Name }
 }
 
