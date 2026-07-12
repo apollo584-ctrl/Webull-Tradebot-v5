@@ -17,7 +17,7 @@
     "provider": {"type": ["string", "null"]},
     "model_output": {"type": ["object", "string", "null"]},
     "normalized_decision": {
-      "type": "object",
+      "type": ["object", "null"],
       "required": ["action", "symbol", "direction", "status"],
       "properties": {
         "action": {"enum": ["OPEN", "ADD", "TRIM", "SELL", "WATCH", "NONE", "REVIEW"]},
@@ -26,9 +26,9 @@
         "status": {"enum": ["actionable", "no_action", "ambiguous", "insufficient_context"]}
       },
       "allOf": [
-        {"if": {"properties": {"action": {"enum": ["OPEN", "ADD", "TRIM", "SELL"]}}}, "then": {"properties": {"status": {"const": "actionable"}, "symbol": {"type": "string"}, "direction": {"type": "string"}}}},
-        {"if": {"properties": {"action": {"enum": ["WATCH", "NONE"]}}}, "then": {"properties": {"status": {"const": "no_action"}}}},
-        {"if": {"properties": {"action": {"const": "REVIEW"}}}, "then": {"properties": {"status": {"enum": ["ambiguous", "insufficient_context"]}}}}
+        {"if": {"required": ["action"], "properties": {"action": {"enum": ["OPEN", "ADD", "TRIM", "SELL"]}}}, "then": {"properties": {"status": {"const": "actionable"}, "symbol": {"type": "string"}, "direction": {"type": "string"}}}},
+        {"if": {"required": ["action"], "properties": {"action": {"enum": ["WATCH", "NONE"]}}}, "then": {"properties": {"status": {"const": "no_action"}}}},
+        {"if": {"required": ["action"], "properties": {"action": {"const": "REVIEW"}}}, "then": {"properties": {"status": {"enum": ["ambiguous", "insufficient_context"]}}}}
       ],
       "additionalProperties": false
     },

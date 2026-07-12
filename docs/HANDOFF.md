@@ -8,9 +8,9 @@ Last updated: 2026-07-11
 - V4 stable reference: `C:\Users\gregd\Codex Projects\Webull Tradebot v4 Qwen`
 - V4 tag: `v4-stable-2026-07-11`
 - V4 baseline commit: `a19db80`
-- V5 Git repository initialized locally on `main`; no commit created yet.
+- V5 Git repository baseline is on `main`; the working branch is used for reviewed changes.
 - V4 GitHub reference: `https://github.com/apollo584-ctrl/Webull-Trade-Bot-v4`.
-- V5 has no GitHub remote configured yet.
+- V5 GitHub remote: `https://github.com/apollo584-ctrl/Webull-Tradebot-v5`.
 
 V4 is the stable, read-only baseline. V5 must not edit or run V4.
 
@@ -136,3 +136,33 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - No prospective July 13 data exists yet. The importer intentionally refuses to create a confirmation set from pre-boundary historical data; final independent labels, label lock, V4 confirmation baseline, and Qwen benchmark must wait for the prospective window.
 - Exact next step on July 13: import a V5-owned raw snapshot, prepare cases, review or split clusters, create the blind queue, complete labels without viewing outcomes, lock labels, run the frozen V4 baseline, then begin model benchmarking.
 - Recommended configuration for this preparation: GPT-5.6 Luna, Medium. A final promotion or go/no-go statistical review should be routed to GPT-5.6 Sol, High.
+
+## July13 Readiness Checkpoint
+
+- Added `docs/PROSPECTIVE_CAPTURE_RUNBOOK.md` with the raw-export contract, blind-labeling rules, July 13 commands, and stop conditions.
+- Reused the existing importer and validators; no new exporter, runtime, broker integration, or model launcher was added.
+- Checks run: documentation review completed; the existing 11-test, compile, and protocol-lock checks remain the latest code verification.
+- Remaining external dependency: obtain a raw Casey JSONL export beginning at or after the locked confirmation boundary. Do not pre-stage labels or model outputs.
+- Next exact step: on July 13, run the importer from the V5 folder and retain its capture manifest with the audit counts.
+
+## Groups 1–2 Fix Checkpoint
+
+- Group 1 corrected the July 13 label-lock command and removed stale setup-only GitHub text from the V5 README and handoff.
+- Group 2 now requires strict novelty/context label fields, validates complete capture manifests, binds scoring to the exact locked cases and labels, and permits schema-valid null decisions for invalid model outputs.
+- Checks run: 13 focused tests passed, Python compilation passed, protocol lock verified, CLI help checks passed, and `git diff --check` passed.
+- Remaining blockers: contamination clearance, candidate/implementation freeze, clustering-method alignment, and complete statistical promotion gates remain Group 3–5 work.
+- Next exact step: Group 3, GPT-5.6 Sol with High reasoning, for contamination and candidate-freeze controls.
+
+## Groups 3–5 Fix Checkpoint
+
+- Added auditable contamination decisions bound to the frozen source-manifest hash; unresolved or provenance-free cases cannot enter the label queue or label lock.
+- Aligned near-duplicate matching with token-trigram Jaccard and changed cluster splits to preserve reviewer-declared subgroups without inflating every case into an independent cluster.
+- Added candidate lock creation and verification for the explicit model, quantization, runtime/version, prompt, model-only output schema, generation settings, timeout, implementation files, and saved-response identity.
+- Bound confirmation scoring to exact locked cases, labels, candidate identity, and separately generated frozen V4 baseline results.
+- Added exact binomial intervals, candidate/V4 field metrics and confusion matrices, paired overall/novel cluster intervals, denominator checks, sample minimums, and explicit `PASS`, `FAIL`, or `INCONCLUSIVE` output.
+- Protocol lock now pins implementation commit `19f764565f57b0c40e4211804f79c161d8f17250` and every tracked evaluator, script, schema, contract, protocol, source-manifest, and V4-baseline lock file.
+- Checks run: 21 focused tests passed, Python compilation passed, JSON parsing passed, candidate-lock dry run passed, CLI help checks passed, and protocol lock verified.
+- Independent risk review found no P0 issue. Its model-schema bypass, contamination-provenance bypass, and cluster-rerun regression findings were fixed before final lock.
+- No Discord, Qwen, Webull, broker, SIM, paper, or LIVE runtime was started. V4 remained read-only.
+- Remaining blocker: the actual primary model/configuration and prompt have not been chosen, so `primary_candidate_locked` remains `false` and official prospective confirmation must not start.
+- Next exact step: choose and commit one candidate configuration and prompt, run `scripts/lock_candidate.py`, verify the protocol, and commit the resulting candidate/protocol lock updates before collecting the first official confirmation message.

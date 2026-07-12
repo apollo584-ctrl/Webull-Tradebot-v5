@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -17,7 +18,8 @@ def main() -> None:
     parser.add_argument("cases", type=Path)
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
-    queue = build_label_queue(load_jsonl(args.cases))
+    reference_hash = hashlib.sha256((ROOT / "data" / "source_manifest.json").read_bytes()).hexdigest()
+    queue = build_label_queue(load_jsonl(args.cases), reference_hash)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="\n") as handle:
         for record in queue:

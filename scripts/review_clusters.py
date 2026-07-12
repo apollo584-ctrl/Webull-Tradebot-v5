@@ -28,8 +28,11 @@ def main() -> None:
         print(f"\nCluster {cluster_id} ({len(group)} cases)")
         for case in group:
             print(f"- {case['source_message_id']}: {case['raw_text']}")
-        choice = input("Confirm same cluster [y], split cases [s], leave pending [n]: ").strip().lower()
-        decisions[cluster_id] = "confirm" if choice == "y" else "split" if choice == "s" else "pending"
+        choice = input("Confirm same cluster [y], assign split groups [s], leave pending [n]: ").strip().lower()
+        if choice == "s":
+            decisions[cluster_id] = {str(case["case_id"]): input(f"Subgroup for {case['source_message_id']}: ").strip() for case in group}
+        else:
+            decisions[cluster_id] = "confirm" if choice == "y" else "pending"
     reviewed = apply_cluster_reviews(cases, decisions)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", encoding="utf-8", newline="\n") as handle:

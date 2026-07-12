@@ -105,6 +105,8 @@ For readiness, the candidate must have:
 
 Report confusion matrices and action, symbol, direction, false-execution, actionable-recall, safe-deferral, invalid-output, timeout, and latency metrics. Use exact binomial 95% intervals for individual rates. Use a paired cluster bootstrap with 10,000 resamples and fixed seed `20260713` for candidate-minus-V4 accuracy intervals. For zero observed critical errors, also report the rough upper-bound diagnostic `3 / n`. Do not replace uncertainty intervals with point estimates.
 
+For the actionable-recall exact interval, each actionable cluster is one Bernoulli unit and counts as recalled only when every actionable message in that cluster is recalled. The point estimate remains the predeclared equal-weight mean of within-cluster recall. This conservative interval prevents repeated wording inside one cluster from creating artificial precision.
+
 ## Gate denominators
 
 | Gate | Denominator and weighting |

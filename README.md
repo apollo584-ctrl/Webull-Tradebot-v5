@@ -14,7 +14,3 @@ V5 is an offline, blind-Qwen evaluation workspace. It tests natural-language tra
 - `docs/` — plans and handoffs
 
 V5 does not contain broker, Webull, Discord, dashboard, or execution code during this phase.
-
-## GitHub status
-
-The V4 reference checkout points to `https://github.com/apollo584-ctrl/Webull-Trade-Bot-v4`. V5 is currently a local Git repository with no remote configured. Add a V5 remote only after a dedicated GitHub repository is chosen.

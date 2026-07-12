@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v5-blind-model-output",
+  "type": "object",
+  "required": ["action", "symbol", "direction", "status"],
+  "properties": {
+    "action": {"enum": ["OPEN", "ADD", "TRIM", "SELL", "WATCH", "NONE", "REVIEW"]},
+    "symbol": {"enum": ["SPY", "QQQ", "IWM", null]},
+    "direction": {"enum": ["LONG", "SHORT", null]},
+    "status": {"enum": ["actionable", "no_action", "ambiguous", "insufficient_context"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"action": {"enum": ["OPEN", "ADD", "TRIM", "SELL"]}}}, "then": {"properties": {"status": {"const": "actionable"}, "symbol": {"type": "string"}, "direction": {"type": "string"}}}},
+    {"if": {"properties": {"action": {"enum": ["WATCH", "NONE"]}}}, "then": {"properties": {"status": {"const": "no_action"}}}},
+    {"if": {"properties": {"action": {"const": "REVIEW"}}}, "then": {"properties": {"status": {"enum": ["ambiguous", "insufficient_context"]}}}}
+  ],
+  "additionalProperties": false
+}

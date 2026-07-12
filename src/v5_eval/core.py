@@ -51,15 +51,15 @@ def load_jsonl(path: str | Path) -> list[dict[str, Any]]:
     return records
 
 
-def _text_ngrams(value: str, size: int = 3) -> set[str]:
-    padded = f"  {value}  "
-    return {padded[index : index + size] for index in range(len(padded) - size + 1)}
+def _token_ngrams(value: str, size: int = 3) -> set[tuple[str, ...]]:
+    tokens = value.split()
+    return {tuple(tokens[index : index + size]) for index in range(len(tokens) - size + 1)}
 
 
 def _near_duplicate(left: str, right: str) -> bool:
     if SequenceMatcher(None, left, right).ratio() >= 0.92:
         return True
-    a, b = _text_ngrams(left), _text_ngrams(right)
+    a, b = _token_ngrams(left), _token_ngrams(right)
     return bool(a and b) and len(a & b) / len(a | b) >= 0.80
 
 
@@ -162,9 +162,19 @@ def canonicalize_records(
 
 
 def validate_capture_manifest(manifest: Mapping[str, Any]) -> None:
-    required = ("snapshot_path", "snapshot_sha256", "source_channel_url_sha256", "parser_or_model_fields_absent")
+    required = ("capture_id", "imported_at", "snapshot_path", "snapshot_sha256", "source_channel_url_sha256", "time_start", "time_end", "record_count", "parser_or_model_fields_absent", "capture_audit")
     if any(key not in manifest for key in required):
         raise ValueError("capture manifest is missing required fields")
+    for key in ("imported_at", "time_start", "time_end"):
+        parse_timestamp(str(manifest[key]))
+    if not str(manifest["capture_id"]).strip() or not isinstance(manifest["record_count"], int) or manifest["record_count"] < 1:
+        raise ValueError("capture manifest has invalid identity or record count")
+    audit = manifest["capture_audit"]
+    audit_keys = ("input_records", "selected_records", "stress_channel_excluded", "wrong_or_missing_source_excluded", "pre_boundary_excluded", "malformed_or_empty_excluded")
+    if not isinstance(audit, Mapping) or any(key not in audit for key in audit_keys) or any(not isinstance(audit[key], int) or audit[key] < 0 for key in audit_keys):
+        raise ValueError("capture manifest has invalid audit counters")
+    if audit["selected_records"] != manifest["record_count"] or audit["selected_records"] > audit["input_records"]:
+        raise ValueError("capture manifest audit does not match record count")
     snapshot_path = Path(str(manifest["snapshot_path"]))
     if snapshot_path.is_absolute() or ".." in snapshot_path.parts or not str(manifest["snapshot_path"]).startswith("data/raw/prospective/"):
         raise ValueError("capture snapshot must be V5-owned prospective data")

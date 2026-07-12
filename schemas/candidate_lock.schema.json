@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "v5-candidate-lock",
+  "type": "object",
+  "required": ["protocol_id", "candidate_locked", "locked_at", "git_commit", "model_id", "quantization", "runtime", "runtime_version", "generation_settings", "timeout_ms", "prompt_file", "prompt_hash", "output_schema_file", "output_schema_hash", "model_config_hash", "implementation_files"],
+  "properties": {
+    "protocol_id": {"const": "v5-prospective-1"},
+    "candidate_locked": {"const": true},
+    "locked_at": {"type": "string", "format": "date-time"},
+    "git_commit": {"type": "string", "pattern": "^[A-Fa-f0-9]{40}$"},
+    "model_id": {"type": "string", "minLength": 1},
+    "quantization": {"type": "string", "minLength": 1},
+    "runtime": {"type": "string", "minLength": 1},
+    "runtime_version": {"type": "string", "minLength": 1},
+    "generation_settings": {"type": "object"},
+    "timeout_ms": {"type": "integer", "minimum": 1},
+    "prompt_file": {"type": "string", "minLength": 1},
+    "prompt_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "output_schema_file": {"type": "string", "minLength": 1},
+    "output_schema_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "model_config_hash": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "implementation_files": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"}}
+  },
+  "additionalProperties": false
+}
