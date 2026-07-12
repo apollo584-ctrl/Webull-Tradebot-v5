@@ -152,3 +152,17 @@ In a fresh V5 Codex chat, read the global rules, this handoff, and the copy-read
 - Checks run: 13 focused tests passed, Python compilation passed, protocol lock verified, CLI help checks passed, and `git diff --check` passed.
 - Remaining blockers: contamination clearance, candidate/implementation freeze, clustering-method alignment, and complete statistical promotion gates remain Group 3–5 work.
 - Next exact step: Group 3, GPT-5.6 Sol with High reasoning, for contamination and candidate-freeze controls.
+
+## Groups 3–5 Fix Checkpoint
+
+- Added auditable contamination decisions bound to the frozen source-manifest hash; unresolved or provenance-free cases cannot enter the label queue or label lock.
+- Aligned near-duplicate matching with token-trigram Jaccard and changed cluster splits to preserve reviewer-declared subgroups without inflating every case into an independent cluster.
+- Added candidate lock creation and verification for the explicit model, quantization, runtime/version, prompt, model-only output schema, generation settings, timeout, implementation files, and saved-response identity.
+- Bound confirmation scoring to exact locked cases, labels, candidate identity, and separately generated frozen V4 baseline results.
+- Added exact binomial intervals, candidate/V4 field metrics and confusion matrices, paired overall/novel cluster intervals, denominator checks, sample minimums, and explicit `PASS`, `FAIL`, or `INCONCLUSIVE` output.
+- Protocol lock now pins implementation commit `19f764565f57b0c40e4211804f79c161d8f17250` and every tracked evaluator, script, schema, contract, protocol, source-manifest, and V4-baseline lock file.
+- Checks run: 21 focused tests passed, Python compilation passed, JSON parsing passed, candidate-lock dry run passed, CLI help checks passed, and protocol lock verified.
+- Independent risk review found no P0 issue. Its model-schema bypass, contamination-provenance bypass, and cluster-rerun regression findings were fixed before final lock.
+- No Discord, Qwen, Webull, broker, SIM, paper, or LIVE runtime was started. V4 remained read-only.
+- Remaining blocker: the actual primary model/configuration and prompt have not been chosen, so `primary_candidate_locked` remains `false` and official prospective confirmation must not start.
+- Next exact step: choose and commit one candidate configuration and prompt, run `scripts/lock_candidate.py`, verify the protocol, and commit the resulting candidate/protocol lock updates before collecting the first official confirmation message.
