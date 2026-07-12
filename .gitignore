@@ -50,3 +50,5 @@ coverage.xml
 # OS
 Thumbs.db
 Desktop.ini
+
+.github/project-binding.json
