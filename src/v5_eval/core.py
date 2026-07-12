@@ -51,15 +51,15 @@ def load_jsonl(path: str | Path) -> list[dict[str, Any]]:
     return records
 
 
-def _text_ngrams(value: str, size: int = 3) -> set[str]:
-    padded = f"  {value}  "
-    return {padded[index : index + size] for index in range(len(padded) - size + 1)}
+def _token_ngrams(value: str, size: int = 3) -> set[tuple[str, ...]]:
+    tokens = value.split()
+    return {tuple(tokens[index : index + size]) for index in range(len(tokens) - size + 1)}
 
 
 def _near_duplicate(left: str, right: str) -> bool:
     if SequenceMatcher(None, left, right).ratio() >= 0.92:
         return True
-    a, b = _text_ngrams(left), _text_ngrams(right)
+    a, b = _token_ngrams(left), _token_ngrams(right)
     return bool(a and b) and len(a & b) / len(a | b) >= 0.80
 
 

@@ -14,6 +14,7 @@ from .scoring import label_ready
 
 RAW_KEYS = {"browser_time", "event", "has_everyone", "message_id", "page_title", "page_url", "raw_text", "timestamp"}
 PROHIBITED_RAW_KEYS = {"decision", "parser", "interpretation", "shadow", "model", "label", "expected"}
+CONTAMINATION_FLAGS = {"historical_exact_match", "historical_near_duplicate", "prior_model_review", "manual_correction", "prompt_example", "parser_rule_tuning", "threshold_tuning"}
 
 
 def select_prospective_records(records: Iterable[Mapping[str, Any]], confirmation_start: datetime, *, with_audit: bool = False):
@@ -53,17 +54,54 @@ def select_prospective_records(records: Iterable[Mapping[str, Any]], confirmatio
     return (selected, audit) if with_audit else selected
 
 
-def apply_cluster_reviews(cases: Iterable[Mapping[str, Any]], decisions: Mapping[str, str]) -> list[dict[str, Any]]:
+def apply_cluster_reviews(cases: Iterable[Mapping[str, Any]], decisions: Mapping[str, Any]) -> list[dict[str, Any]]:
     output = [dict(case) for case in cases]
+    groups: dict[str, list[dict[str, Any]]] = {}
     for case in output:
-        decision = decisions.get(str(case["cluster_id"]), "pending")
+        groups.setdefault(str(case["cluster_id"]), []).append(case)
+    for cluster_id, group in groups.items():
+        decision = decisions.get(cluster_id, "pending")
         if decision == "confirm":
-            case["cluster_review_status"] = "confirmed"
-        elif decision == "split":
-            case["cluster_id"] = f"{case['cluster_id']}-{case['case_id']}"
-            case["cluster_review_status"] = "confirmed_split"
+            for case in group:
+                case["cluster_review_status"] = "confirmed"
+        elif isinstance(decision, Mapping):
+            case_ids = {str(case["case_id"]) for case in group}
+            if set(map(str, decision)) != case_ids or any(not str(value).strip() for value in decision.values()):
+                raise ValueError(f"split groups must exactly cover cluster {cluster_id}")
+            for case in group:
+                subgroup = str(decision[str(case["case_id"])]).strip()
+                case["cluster_id"] = f"{cluster_id}-{sha256_text(subgroup)[:16]}"
+                case["cluster_review_status"] = "confirmed_split"
         else:
-            case["cluster_review_status"] = "pending_review"
+            for case in group:
+                case["cluster_review_status"] = "pending_review"
+    return output
+
+
+def apply_contamination_reviews(cases: Iterable[Mapping[str, Any]], decisions: Mapping[str, Mapping[str, Any]], reference_hash: str) -> list[dict[str, Any]]:
+    output = [dict(case) for case in cases]
+    case_ids = {str(case["case_id"]) for case in output}
+    if set(map(str, decisions)) != case_ids:
+        raise ValueError("contamination decisions must exactly cover every case")
+    for case in output:
+        decision = decisions[str(case["case_id"])]
+        status = decision.get("status")
+        flags = list(decision.get("flags", []))
+        try:
+            reviewed_at = datetime.fromisoformat(str(decision.get("reviewed_at", "")).replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"invalid contamination review timestamp for case {case['case_id']}") from exc
+        if reviewed_at.tzinfo is None or str(decision.get("reference_hash", "")).casefold() != reference_hash.casefold() or not str(decision.get("reviewer_id", "")).strip() or not str(decision.get("rationale", "")).strip():
+            raise ValueError(f"incomplete contamination audit for case {case['case_id']}")
+        if status == "clear" and not flags:
+            case["contamination_status"] = "clear"
+            case["contamination_flags"] = []
+        elif status == "excluded" and flags and set(flags) <= CONTAMINATION_FLAGS:
+            case["contamination_status"] = "excluded"
+            case["contamination_flags"] = sorted(set(flags))
+        else:
+            raise ValueError(f"invalid contamination decision for case {case['case_id']}")
+        case["contamination_review"] = {"reference_hash": reference_hash, "reviewer_id": str(decision["reviewer_id"]), "reviewed_at": reviewed_at.isoformat(), "rationale": str(decision["rationale"])}
     return output
 
 
@@ -72,6 +110,8 @@ def build_label_queue(cases: Iterable[Mapping[str, Any]], *, seed: int = 2026071
     for case in cases:
         if case.get("cluster_review_status") not in ("confirmed", "confirmed_split"):
             raise ValueError("all clusters must be reviewed before label queue creation")
+        if case.get("contamination_status") not in ("clear", "excluded"):
+            raise ValueError("all cases require final contamination review before labeling")
         queue.append({
             "case_id": case["case_id"],
             "cluster_id": case["cluster_id"],
@@ -119,6 +159,8 @@ def build_label_lock(*, cases_path: str | Path, labels_path: str | Path, root: s
         raise ValueError("label source_message_id does not match case")
     if any(case.get("cluster_review_status") not in ("confirmed", "confirmed_split") for case in case_records):
         raise ValueError("unreviewed cluster remains in case file")
+    if any(case.get("contamination_status") not in ("clear", "excluded") for case in case_records):
+        raise ValueError("unresolved contamination remains in case file")
     if any(not label_ready(label) for label in labels_by_id.values()):
         raise ValueError("one or more labels are not final blind labels")
     try:

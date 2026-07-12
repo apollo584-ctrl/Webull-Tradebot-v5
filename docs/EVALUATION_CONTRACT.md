@@ -29,6 +29,8 @@ The model must not receive:
 - an expected label;
 - post-hoc correction notes.
 
+The candidate lock must point to `schemas/model_output.schema.json`, which contains only the normalized decision fields. The full evaluation-record schema is scorer-side and must never be used as the model output contract because it contains labels and comparison fields.
+
 ## Comparison-only fields
 
 The scorer may separately attach the independent label, V4 parser result, model result, latency, and error state. These fields are for evaluation and must not be included in the blind model request.
@@ -38,3 +40,5 @@ The scorer may separately attach the independent label, V4 parser result, model 
 Every case should preserve:
 
 `case_id`, `source_message_id`, `message_timestamp`, `input_hash`, `model_id`, `provider`, `model_output`, `normalized_decision`, `latency_ms`, `parse_status`, `independent_label`, `v4_baseline`, and `contamination_flags`.
+
+Invalid JSON, invalid decisions, timeouts, and runtime errors preserve `normalized_decision = null` and remain in every applicable denominator.

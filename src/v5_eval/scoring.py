@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from math import comb
 import random
 from statistics import mean
 from datetime import datetime
@@ -120,13 +121,96 @@ def _percentile(values: list[float], fraction: float) -> float | None:
     return values[min(len(values) - 1, int(fraction * (len(values) - 1)))]
 
 
-def _cluster_accuracy(records: Iterable[Mapping[str, Any]]) -> float | None:
+def _cluster_accuracy(records: Iterable[Mapping[str, Any]], field: str = "model_correct") -> float | None:
     clusters: dict[str, list[bool]] = defaultdict(list)
     for record in records:
-        clusters[str(record["cluster_id"])].append(bool(record["model_correct"]))
+        if record.get(field) is not None:
+            clusters[str(record["cluster_id"])].append(bool(record[field]))
     if not clusters:
         return None
     return mean(mean(values) for values in clusters.values())
+
+
+def exact_binomial_interval(successes: int, total: int, alpha: float = 0.05) -> dict[str, float | None]:
+    if total < 1 or successes < 0 or successes > total:
+        return {"lower": None, "upper": None}
+
+    def cdf(k: int, probability: float) -> float:
+        return sum(comb(total, index) * probability**index * (1 - probability) ** (total - index) for index in range(k + 1))
+
+    def upper_tail(k: int, probability: float) -> float:
+        return sum(comb(total, index) * probability**index * (1 - probability) ** (total - index) for index in range(k, total + 1))
+
+    lower = 0.0
+    if successes:
+        low, high = 0.0, 1.0
+        for _ in range(70):
+            middle = (low + high) / 2
+            if upper_tail(successes, middle) < alpha / 2:
+                low = middle
+            else:
+                high = middle
+        lower = (low + high) / 2
+    upper = 1.0
+    if successes < total:
+        low, high = 0.0, 1.0
+        for _ in range(70):
+            middle = (low + high) / 2
+            if cdf(successes, middle) > alpha / 2:
+                low = middle
+            else:
+                high = middle
+        upper = (low + high) / 2
+    return {"lower": lower, "upper": upper}
+
+
+def _confusion(records: Iterable[Mapping[str, Any]], decision_field: str = "normalized_decision") -> dict[str, dict[str, int]]:
+    matrix: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for row in records:
+        gold = _decision(row.get("independent_label"))
+        predicted = _decision(row.get(decision_field))
+        matrix[str(gold.get("action") if gold else "MISSING")][str(predicted.get("action") if predicted else "INVALID")] += 1
+    return {gold: dict(values) for gold, values in matrix.items()}
+
+
+def _field_accuracy(records: list[Mapping[str, Any]], field: str, decision_field: str) -> float | None:
+    comparisons = []
+    for row in records:
+        gold = _decision(row.get("independent_label"))
+        predicted = _decision(row.get(decision_field))
+        if gold and (field == "action" or gold.get(field) is not None):
+            comparisons.append(bool(predicted and predicted.get(field) == gold.get(field)))
+    return mean(comparisons) if comparisons else None
+
+
+def _protocol_decision(report: Mapping[str, Any], protocol: Mapping[str, Any]) -> dict[str, Any]:
+    counts = report["sample_counts"]
+    minimums = protocol["minimum_sample"]
+    minimum_failures = [key for key, minimum in minimums.items() if key != "scope" and counts.get(key, 0) < minimum]
+    prerequisites = []
+    if report["missing_latency"]:
+        prerequisites.append("missing_latency")
+    if report["missing_v4_baseline"]:
+        prerequisites.append("missing_v4_baseline")
+    if report["unresolved_contamination"]:
+        prerequisites.append("unresolved_contamination")
+    if report["novel_paired_cluster_bootstrap"]["lower"] is None or report["paired_cluster_bootstrap"]["lower"] is None:
+        prerequisites.append("missing_paired_comparison")
+    if minimum_failures or prerequisites:
+        return {"status": "INCONCLUSIVE", "minimum_failures": minimum_failures, "prerequisite_failures": prerequisites, "gates": {}}
+    gates_config = protocol["promotion_gates"]
+    novel_difference = report["novel_cluster_weighted_accuracy"] - report["v4_novel_cluster_weighted_accuracy"]
+    gates = {
+        "novel_improvement": novel_difference >= gates_config["novel_accuracy_improvement_percentage_points"] / 100 and report["novel_paired_cluster_bootstrap"]["lower"] > 0,
+        "overall_noninferiority": report["paired_cluster_bootstrap"]["lower"] >= gates_config["overall_noninferiority_margin_percentage_points"] / 100,
+        "critical_errors": report["critical_errors"] <= gates_config["critical_errors"] and report["critical_errors"] <= report["v4_critical_errors"],
+        "safe_handling": report["safe_handling_rate"] is not None and report["safe_handling_rate"] >= gates_config["non_actionable_safe_handling_minimum_rate"],
+        "actionable_recall": report["actionable_recall"] is not None and report["actionable_recall"] >= gates_config["actionable_recall_minimum_rate"] and report["intervals"]["actionable_cluster_recall"]["lower"] >= gates_config["actionable_recall_ci_lower_bound_minimum"],
+        "structured_output": report["structured_output_rate"] >= gates_config["structured_output_minimum_rate"],
+        "runtime_errors": report["timeout_or_runtime_error_rate"] <= gates_config["timeout_and_runtime_error_maximum_rate"],
+        "latency": report["p95_latency_ms"] <= gates_config["p95_latency_maximum_ms"],
+    }
+    return {"status": "PASS" if all(gates.values()) else "FAIL", "minimum_failures": [], "prerequisite_failures": [], "gates": gates}
 
 
 def paired_cluster_bootstrap(records: list[Mapping[str, Any]], *, seed: int = 20260713, resamples: int = 10000) -> dict[str, float | None]:
@@ -147,7 +231,7 @@ def paired_cluster_bootstrap(records: list[Mapping[str, Any]], *, seed: int = 20
     return {"lower": _percentile(differences, 0.025), "upper": _percentile(differences, 0.975)}
 
 
-def score_records(records: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+def score_records(records: Iterable[Mapping[str, Any]], protocol: Mapping[str, Any] | None = None) -> dict[str, Any]:
     evaluated: list[dict[str, Any]] = []
     attempted = 0
     critical_errors = v4_critical_errors = 0
@@ -207,13 +291,19 @@ def score_records(records: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
             v4_actionable_clusters[str(row["cluster_id"])].append(bool(v4 and v4.get("status") == "actionable"))
     actionable_cluster_values = [mean(values) for values in actionable_clusters.values()]
     v4_actionable_cluster_values = [mean(values) for values in v4_actionable_clusters.values()]
-    return {
+    actionable_cluster_successes = sum(all(values) for values in actionable_clusters.values())
+    eligible_labels = [_decision(row["independent_label"]) for row in eligible]
+    novel_bootstrap = paired_cluster_bootstrap(novel)
+    report = {
         "attempted": attempted,
         "eligible_clear": len(eligible),
         "novel_eligible": len(novel),
         "message_weighted_accuracy": mean(row["model_correct"] for row in eligible) if eligible else None,
+        "v4_message_weighted_accuracy": mean(row["v4_correct"] for row in eligible) if eligible and all(row["v4_correct"] is not None for row in eligible) else None,
         "cluster_weighted_accuracy": _cluster_accuracy(eligible),
+        "v4_cluster_weighted_accuracy": _cluster_accuracy(eligible, "v4_correct"),
         "novel_cluster_weighted_accuracy": _cluster_accuracy(novel),
+        "v4_novel_cluster_weighted_accuracy": _cluster_accuracy(novel, "v4_correct"),
         "critical_errors": critical_errors,
         "v4_critical_errors": v4_critical_errors,
         "false_execution_rate": false_executions / safe_total if safe_total else None,
@@ -225,5 +315,40 @@ def score_records(records: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
         "structured_output_rate": sum(row["parse_status"] == "ok" for row in evaluated) / attempted if attempted else None,
         "timeout_or_runtime_error_rate": sum(row["parse_status"] in ("timeout", "error") for row in evaluated) / attempted if attempted else None,
         "p95_latency_ms": _percentile([float(row["latency_ms"]) for row in evaluated if row.get("latency_ms") is not None], 0.95),
+        "missing_latency": sum(row.get("latency_ms") is None for row in evaluated),
+        "missing_v4_baseline": sum(row.get("v4_baseline") is None for row in evaluated),
+        "unresolved_contamination": sum(row.get("contamination_status") == "unresolved" for row in evaluated),
         "paired_cluster_bootstrap": paired_cluster_bootstrap(eligible),
+        "novel_paired_cluster_bootstrap": novel_bootstrap,
+        "confusion_matrix_action": _confusion(eligible),
+        "v4_confusion_matrix_action": _confusion(eligible, "v4_baseline"),
+        "field_accuracy": {
+            field: _field_accuracy(eligible, field, "normalized_decision") for field in ("action", "symbol", "direction")
+        },
+        "v4_field_accuracy": {
+            field: _field_accuracy(eligible, field, "v4_baseline") for field in ("action", "symbol", "direction")
+        },
+        "intervals": {
+            "message_accuracy": exact_binomial_interval(sum(row["model_correct"] for row in eligible), len(eligible)),
+            "v4_message_accuracy": exact_binomial_interval(sum(bool(row["v4_correct"]) for row in eligible), len(eligible)) if eligible and all(row["v4_correct"] is not None for row in eligible) else {"lower": None, "upper": None},
+            "safe_handling": exact_binomial_interval(safe_correct, safe_total),
+            "actionable_cluster_recall": exact_binomial_interval(actionable_cluster_successes, len(actionable_clusters)),
+            "structured_output": exact_binomial_interval(sum(row["parse_status"] == "ok" for row in evaluated), attempted),
+            "runtime_error": exact_binomial_interval(sum(row["parse_status"] in ("timeout", "error") for row in evaluated), attempted),
+            "false_execution": exact_binomial_interval(false_executions, safe_total),
+        },
+        "critical_error_upper_bound_rough": 3 / attempted if attempted and not critical_errors else None,
+        "sample_counts": {
+            "unique_messages": len(eligible),
+            "independent_clusters": len({str(row["cluster_id"]) for row in eligible}),
+            "distinct_trading_days": len({parse_timestamp(str(row["message_timestamp"])).date().isoformat() for row in eligible if row.get("message_timestamp")}),
+            "actionable": sum(label.get("status") == "actionable" for label in eligible_labels),
+            "non_actionable": sum(label.get("status") != "actionable" for label in eligible_labels),
+            "linguistically_novel": len(novel),
+            "linguistically_novel_clusters": len({str(row["cluster_id"]) for row in novel}),
+            "ambiguous_or_context_dependent": sum(label.get("status") in ("ambiguous", "insufficient_context") or label.get("required_context", {}).get("context_required") is True for label in eligible_labels),
+        },
     }
+    if protocol is not None:
+        report["protocol_decision"] = _protocol_decision(report, protocol)
+    return report
