@@ -267,8 +267,9 @@ class V5CoreTests(unittest.TestCase):
         prompt = root / "README.md"
         schema = root / "schemas" / "model_output.schema.json"
         tracked = subprocess.run(["git", "ls-files", "src/v5_eval", "scripts", "schemas", "data/baseline/v4_parser_lock.json"], cwd=root, check=True, capture_output=True, text=True).stdout.splitlines()
-        implementation_files = {relative.replace("\\", "/"): hashlib.sha256((root / relative).read_bytes()).hexdigest() for relative in tracked}
-        lock = {"protocol_id": "v5-prospective-1", "candidate_locked": True, "git_commit": "A" * 40, "model_id": "candidate", "quantization": "test", "runtime": "test", "runtime_version": "1", "generation_settings": {"temperature": 0}, "timeout_ms": 1000, "prompt_file": "README.md", "prompt_hash": hashlib.sha256(prompt.read_text(encoding="utf-8").encode("utf-8")).hexdigest(), "output_schema_file": "schemas/model_output.schema.json", "output_schema_hash": hashlib.sha256(schema.read_bytes()).hexdigest(), "model_config_hash": "B" * 64, "implementation_files": implementation_files}
+        hash_text = lambda path: hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+        implementation_files = {relative.replace("\\", "/"): hash_text(root / relative) for relative in tracked}
+        lock = {"protocol_id": "v5-prospective-1", "candidate_locked": True, "git_commit": "A" * 40, "model_id": "candidate", "quantization": "test", "runtime": "test", "runtime_version": "1", "generation_settings": {"temperature": 0}, "timeout_ms": 1000, "prompt_file": "README.md", "prompt_hash": hash_text(prompt), "output_schema_file": "schemas/model_output.schema.json", "output_schema_hash": hash_text(schema), "model_config_hash": "B" * 64, "implementation_files": implementation_files}
         verify_candidate_lock(lock, root, [{"case_id": "c1", "model_id": "candidate", "prompt_hash": lock["prompt_hash"], "model_config_hash": lock["model_config_hash"]}])
         with self.assertRaises(ValueError):
             verify_candidate_lock(lock, root, [{"case_id": "c1", "model_id": "other", "prompt_hash": lock["prompt_hash"], "model_config_hash": lock["model_config_hash"]}])
