@@ -1,50 +1,46 @@
-# GitHub Setup Handoff
+# V5 Handoff — Blind Qwen Evaluation
 
-This document contains only the GitHub CLI workflow.
+Last updated: 2026-07-12
 
-## Rules
+## Purpose
 
-- GitHub actions apply only to the explicitly current project.
-- Never infer the push target from this guide or another project.
-- Bind the current folder, origin, and default branch once; later helper commands verify them automatically.
-- Never stage secrets, credentials, runtime data, databases, or unrelated changes.
-- Use draft pull requests by default.
-- Never force-push, hard-reset, delete branches, or overwrite an unexpected remote.
+V5 is a scientific readiness test for whether a local model can interpret Discord trade messages without being shown the V4 parser's answer. It is not a replacement trading bot.
 
-## One-Time Binding
+Qwen is not considered better merely because it disagrees with V4. Qwen and the V4 parser must be compared against independent labels from an unseen, time-separated holdout set.
 
-From the explicitly current project:
+## Active Workspace
 
-    pr.bat bind
+- V5 directory: `C:\Users\gregd\Codex Projects\Webull Tradebot v5`
+- V4 stable, read-only reference: `C:\Users\gregd\Codex Projects\Webull Tradebot v4 Qwen`
+- V4 tag: `v4-stable-2026-07-11`
+- V4 baseline commit: `a19db80`
 
-The helper displays the current folder, origin remote, and GitHub default branch. Type YES once to save the local binding.
+Do not edit, run, restart, or use V4 while working in this folder unless explicitly asked.
 
-## Authentication
+## Safety and Evaluation Boundaries
 
-    gh auth login -h github.com --web
-    gh auth status
+- Qwen receives no V4 parser answer, action, symbol, direction, or executable/review classification.
+- Deterministic safety, sizing, broker, reconciliation, SIM/LIVE, and fail-closed execution gates remain outside Qwen.
+- Curated corrections and hand-picked examples are not fresh independent evidence.
+- No unattended SIM autonomy, paper autonomy, LIVE Qwen control, broker connection, or Webull runtime is allowed during evaluation.
+- The deferred approval-session redesign must be completed before broader SIM testing.
 
-Never paste or expose tokens.
+## Current Checkpoint
 
-## New Repository
+- The V5 protocol, labels, contamination, clustering, candidate, and scoring controls are locked.
+- The primary candidate is frozen as `qwen3:8b@500a1f067a9f` with the locked prompt and runtime settings in `config/candidate-qwen3-8b.json`, `prompts/blind_trade_classifier.txt`, and `data/holdout/candidate.lock.json`.
+- The V4 parser comparator is frozen separately; its result is not an input to Qwen.
+- Historical and curated data remain development evidence only.
+- No prospective July 13 confirmation snapshot, independent label lock, official V4 baseline, or Qwen benchmark exists yet.
 
-After confirming the current project and exact repository name:
+## Next Exact Step
 
-    gh repo create OWNER/REPOSITORY --private --source . --remote origin
-    git branch -M main
-    git push -u origin main
-    gh repo edit OWNER/REPOSITORY --default-branch main
+On or after the July 13 boundary, import a V5-owned Casey raw snapshot, prepare and review clusters, create the blind label queue, complete independent labels without viewing model outcomes, lock the labels, run the frozen V4 baseline, and then benchmark the frozen candidate.
 
-Use --public only when explicitly requested.
+Use `docs/PROSPECTIVE_CAPTURE_RUNBOOK.md` for the commands and stop conditions. Do not alter the candidate or prompt after confirmation outcomes are visible.
 
-## Pull Request Workflow
+## Verification
 
-    pr.bat start feature-name
-    pr.bat status
-    pr.bat finish "Commit and PR title"
+Latest preparation checks: 21 focused tests passed, Python compilation passed, JSON parsing passed, candidate-lock dry run passed, CLI help checks passed, and the protocol verifier passed.
 
-The finish command verifies the saved project binding, shows changed files, requires YES, blocks sensitive paths, commits, pushes the current branch, and opens a draft PR against main.
-
-## Completion Report
-
-Record the current project folder, repository URL, branch, commit, default branch, PR URL, checks run, and anything blocked.
+No Discord, Qwen, Webull, broker, SIM, paper, or LIVE process was started for this phase.
