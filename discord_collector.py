@@ -163,7 +163,7 @@ class EdgeClient:
             return json.loads(response.read().decode("utf-8"))
 
     def targets(self) -> list[dict]:
-        value = self.json_endpoint("/json")
+        value = self.json_endpoint("/json/list")
         return value if isinstance(value, list) else []
 
     def evaluate(self, target_id: str, expression: str) -> object:

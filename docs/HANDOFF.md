@@ -144,3 +144,11 @@ Tests run: none yet. Next exact step: run only the approved bounded compile chec
 - Files changed for this workflow: `discord_collector.py`, `collect_messages.bat`, `human_labeling.py`, `message_operations.py`, `verify_shared_operations.py`, `tests/test_discord_collector.py`, `AGENTS.md`, `README.md`, the active handoff, and superseded workflow notices. Existing unrelated V5 worktree changes were preserved.
 - No commit or push was performed.
 - Next manual step: from V6, run one controlled historical sweep through `COLLECT_MESSAGES.bat`, then begin one 5-message conversational labeling batch.
+
+## Controlled July 15 sweep — 2026-07-15
+
+- The Edge-only V6 helper verified the exact Casey channel on port `9227`.
+- Corrected V5 target discovery to use Edge's `/json/list` page-target endpoint.
+- The July 15 inclusive sweep completed successfully: `20` messages read, `0` inserted, `20` duplicates, archive total `86`.
+- The authoritative database hash remained `BA9FA78EC6ADBE9DD743D6E9A67B86AAEC13A62AD6DAAEB3DB6D686884DE71EB`.
+- No Discord write, listener start, label write, or SIM/dashboard action occurred.
