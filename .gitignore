@@ -37,6 +37,14 @@ checkpoints/
 models/
 *.sqlite3
 *.db
+data/human_label_events.jsonl
+data/operation_runs.jsonl
+data/operation.lock
+data/operation_step.lock
+data/shared_operations_verify.log
+data/human_label_events.jsonl.tmp
+data/operation_runs.jsonl.tmp
+.edge_discord_profile/
 
 # Tooling
 .pytest_cache/
