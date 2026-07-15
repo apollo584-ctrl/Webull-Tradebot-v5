@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions DisableDelayedExpansion
 cd /d "%~dp0"
 
 set "CHANNEL_URL=https://discord.com/channels/988680941406912512/1026241985444593724"
