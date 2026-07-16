@@ -7,18 +7,40 @@ set "PYTHON_EXE=python"
 if exist ".venv\Scripts\python.exe" set "PYTHON_EXE=.venv\Scripts\python.exe"
 for %%I in ("%~dp0..\Webull Tradebot v6\local_state\discord_listener.pid") do set "V6_LISTENER_PID=%%~fI"
 
-for /f %%D in ('powershell -NoProfile -Command "(Get-Date).ToString('yyyy-MM-dd')"') do set "TODAY=%%D"
+for /f %%D in ('powershell -NoProfile -Command "(Get-Date).ToString('MM-dd-yyyy')"') do set "TODAY=%%D"
 echo.
-set /p "COLLECTION_START=Beginning date [%TODAY%]: "
-if "%COLLECTION_START%"=="" set "COLLECTION_START=%TODAY%"
-set /p "COLLECTION_END=Ending date [%COLLECTION_START%]: "
-if "%COLLECTION_END%"=="" set "COLLECTION_END=%COLLECTION_START%"
+set /p "COLLECTION_START_INPUT=Beginning date MM-DD-YYYY [%TODAY%]: "
+if "%COLLECTION_START_INPUT%"=="" set "COLLECTION_START_INPUT=%TODAY%"
+set /p "COLLECTION_END_INPUT=Ending date MM-DD-YYYY [%COLLECTION_START_INPUT%]: "
+if "%COLLECTION_END_INPUT%"=="" set "COLLECTION_END_INPUT=%COLLECTION_START_INPUT%"
+
+set "PARSED_START=%TEMP%\v5_start_date_%RANDOM%.txt"
+"%PYTHON_EXE%" -c "import re,sys; from datetime import date; s=sys.argv[1]; assert re.fullmatch(r'\d{2}-\d{2}-\d{4}',s); print(date(int(s[6:]),int(s[:2]),int(s[3:5])).isoformat())" "%COLLECTION_START_INPUT%" > "%PARSED_START%" 2>nul
+if errorlevel 1 (
+  del /q "%PARSED_START%" >nul 2>nul
+  echo ERROR: Use a valid MM-DD-YYYY beginning date, including leading zeroes.
+  pause
+  exit /b 2
+)
+set /p "COLLECTION_START="<"%PARSED_START%"
+del /q "%PARSED_START%" >nul 2>nul
+
+set "PARSED_END=%TEMP%\v5_end_date_%RANDOM%.txt"
+"%PYTHON_EXE%" -c "import re,sys; from datetime import date; s=sys.argv[1]; assert re.fullmatch(r'\d{2}-\d{2}-\d{4}',s); print(date(int(s[6:]),int(s[:2]),int(s[3:5])).isoformat())" "%COLLECTION_END_INPUT%" > "%PARSED_END%" 2>nul
+if errorlevel 1 (
+  del /q "%PARSED_END%" >nul 2>nul
+  echo ERROR: Use a valid MM-DD-YYYY ending date, including leading zeroes.
+  pause
+  exit /b 2
+)
+set /p "COLLECTION_END="<"%PARSED_END%"
+del /q "%PARSED_END%" >nul 2>nul
 
 set "DATE_START=%COLLECTION_START%"
 set "DATE_END=%COLLECTION_END%"
 "%PYTHON_EXE%" -c "import os; from datetime import date; start=date.fromisoformat(os.environ['DATE_START']); end=date.fromisoformat(os.environ['DATE_END']); assert start <= end" >nul 2>nul
 if errorlevel 1 (
-  echo ERROR: Use YYYY-MM-DD dates with beginning date on or before ending date.
+  echo ERROR: Beginning date must be on or before ending date.
   pause
   exit /b 2
 )

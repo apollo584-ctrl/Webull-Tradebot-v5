@@ -20,7 +20,7 @@ The previous V5 evaluation implementation and July 13–14 holdout artifacts rem
 - Shared Edge profile: `C:\Users\gregd\Codex Projects\Webull Tradebot v6\local_state\edge_discord_profile_v6_readonly`
 - Default timezone: `America/New_York`
 
-The batch sweep prompts for an inclusive beginning and ending date. Use the same date for both prompts to collect one day. The command-line collector supports `--start-date YYYY-MM-DD --end-date YYYY-MM-DD`; the older single-day `--date` form remains supported.
+The batch sweep prompts for an inclusive beginning and ending date in `MM-DD-YYYY` format. Use the same date for both prompts to collect one day. The launcher validates and converts those operator-facing dates to the command-line collector's existing internal `--start-date YYYY-MM-DD --end-date YYYY-MM-DD` format; the older single-day `--date` form remains supported.
 
 The collector requires an exact `DISCORD_CHANNEL_URL` or `--channel-url`. The channel guard rejects every other Discord tab. Discord is read through the visible page DOM; the collector never posts or modifies messages.
 
